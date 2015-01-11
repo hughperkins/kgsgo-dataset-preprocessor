@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#
+# Copyright Hugh Perkins 2015 hughperkins at gmail
+#
+# This Source Code Form is subject to the terms of the Mozilla Public License, 
+# v. 2.0. If a copy of the MPL was not distributed with this file, You can 
+# obtain one at http://mozilla.org/MPL/2.0/.
 
 # assumptions:
 # - at least python 2.7
@@ -10,6 +16,13 @@ import urllib
 import zipfile
 import shutil
 import numpy
+
+from os import sys, path
+mydir = path.dirname(path.dirname(path.abspath(__file__)))
+    #print mydir
+sys.path.append(mydir + '/gomill' )
+import gomill
+import gomill.sgf
 
 sKgsUrl = 'http://u-go.net/gamerecords/'
 
@@ -70,29 +83,43 @@ def unzipFiles( sTargetDirectory, iMaxFiles ):
                 return
 
 def walkthroughSgf( datafile, sgfContents ):
-    splitcontents = sgfContents.split('\n')
-    movesString = splitcontents[len(splitcontents)-2]
-#    print movesString
-    splitmovesString = movesString.split(";")
-    for move in splitmovesString:
-        if move.strip() == '':
-            continue
-#        print move
-        playerLetter = move.split('[')[0]
-        moveString = move.split('[')[1]
-        colLetter = moveString[0]
-        rowLetter = moveString[1]
-        print colLetter + "," + rowLetter
-        col = ord(colLetter) - ord('a')
-        if col > 7:
-            col = col - 1
-        print col
-        row = ord(rowLetter) - ord('a')
-        if row > 7:
-            row = row - 1
-        print row
+    sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
+    # print sgf
+    if sgf.get_size() != 19:
+        print 'boardsize not 19, ignoring'
+        return
+    if sgf.get_handicap() != None and sgf.get_handicap() != 0:
+        print 'handicap not zero, ignoring'
+        return
+    for it in sgf.main_sequence_iter():
+        (color,move) = it.get_move()
+        print move
+    
+
+#    splitcontents = sgfContents.split('\n')
+#    movesString = splitcontents[len(splitcontents)-2]
+##    print movesString
+#    splitmovesString = movesString.split(";")
+#    for move in splitmovesString:
+#        if move.strip() == '':
+#            continue
+##        print move
+#        playerLetter = move.split('[')[0]
+#        moveString = move.split('[')[1]
+#        colLetter = moveString[0]
+#        rowLetter = moveString[1]
+#        print colLetter + "," + rowLetter
+#        col = ord(colLetter) - ord('a')
+#        if col > 7:
+#            col = col - 1
+#        print col
+#        row = ord(rowLetter) - ord('a')
+#        if row > 7:
+#            row = row - 1
+#        print row
 
 def parseSgfs2( datafile, sDirPath ):
+    iCount = 0
     for sSgfFilename in os.listdir( sDirPath ):
         print sSgfFilename
         sgfile = open( sDirPath + '/' + sSgfFilename, 'r' )
@@ -103,7 +130,9 @@ def parseSgfs2( datafile, sDirPath ):
             print 'not 19x19, skipping'
             continue
         walkthroughSgf( datafile, contents )
-        sys.exit(-1)
+        iCount = iCount + 1
+        if iCount > 1:
+            sys.exit(-1)
 
 def parseSgfs( sTargetDirectory, iMaxFiles ):
     for sDirname in os.listdir( sTargetDirectory ):
