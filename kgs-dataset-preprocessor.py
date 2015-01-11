@@ -16,6 +16,7 @@ import urllib
 import zipfile
 import shutil
 import numpy
+import GoBoard
 
 from os import sys, path
 mydir = path.dirname(path.dirname(path.abspath(__file__)))
@@ -89,34 +90,18 @@ def walkthroughSgf( datafile, sgfContents ):
         print 'boardsize not 19, ignoring'
         return
     if sgf.get_handicap() != None and sgf.get_handicap() != 0:
-        print 'handicap not zero, ignoring'
+        print 'handicap not zero, ignoring (' + str( sgf.get_handicap() ) + ')'
         return
+    goBoard = GoBoard.GoBoard(19)
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
+        print 'color ' + str(color)
         print move
-    
-
-#    splitcontents = sgfContents.split('\n')
-#    movesString = splitcontents[len(splitcontents)-2]
-##    print movesString
-#    splitmovesString = movesString.split(";")
-#    for move in splitmovesString:
-#        if move.strip() == '':
-#            continue
-##        print move
-#        playerLetter = move.split('[')[0]
-#        moveString = move.split('[')[1]
-#        colLetter = moveString[0]
-#        rowLetter = moveString[1]
-#        print colLetter + "," + rowLetter
-#        col = ord(colLetter) - ord('a')
-#        if col > 7:
-#            col = col - 1
-#        print col
-#        row = ord(rowLetter) - ord('a')
-#        if row > 7:
-#            row = row - 1
-#        print row
+        if color != None:
+            (row,col) = move
+            goBoard.applyMove( color, (19-1-row,col) )
+            print goBoard
+    print 'winner: ' + sgf.get_winner()
 
 def parseSgfs2( datafile, sDirPath ):
     iCount = 0
@@ -130,6 +115,7 @@ def parseSgfs2( datafile, sDirPath ):
             print 'not 19x19, skipping'
             continue
         walkthroughSgf( datafile, contents )
+        print sDirPath + '/' + sSgfFilename
         iCount = iCount + 1
         if iCount > 1:
             sys.exit(-1)

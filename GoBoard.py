@@ -141,6 +141,9 @@ class GoBoard(object):
         goString.insertLiberty( libertypos )
 
     def addAdjacentLiberty( self, pos, goString ):
+        (row,col) = pos
+        if row < 0 or col < 0 or row > self.boardSize - 1 or col > self.boardSize - 1:
+            return
         if( not self.board.has_key(pos) ):
             goString.insertLiberty(pos)
 
