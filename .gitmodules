@@ -1,0 +1,3 @@
+[submodule "gomill"]
+	path = gomill
+	url = https://github.com/mattheww/gomill.git
