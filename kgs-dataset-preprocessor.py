@@ -35,7 +35,7 @@ def downloadFiles( sTargetDirectory, iMaxFiles ):
                     urllib.urlretrieve ( downloadUrl, sTargetDirectory + '/~' + sFilename )
                     os.rename( sTargetDirectory + '/~' + sFilename, sTargetDirectory + '/' + sFilename )
         iCount = iCount + 1
-        if iCount > iMaxFiles:
+        if iMaxFiles != -1 and iCount > iMaxFiles:
             print 'reached limit of files you requested, skipping other downlaods'
             return
 
@@ -53,7 +53,7 @@ def unzipFiles( sTargetDirectory, iMaxFiles ):
                 shutil.move( sTargetDirectory + '/~' + zipdirname + '/' + zipdirname, sTargetDirectory )
                 os.rmdir( sTargetDirectory + '/~' + zipdirname )
             iCount = iCount + 1
-            if iCount > iMaxFiles:
+            if iMaxFiles != -1 and iCount > iMaxFiles:
                 print 'reached limit of files you requested, skipping other unzips'
                 return
 
