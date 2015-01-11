@@ -83,6 +83,52 @@ def unzipFiles( sTargetDirectory, iMaxFiles ):
                 print 'reached limit of files you requested, skipping other unzips'
                 return
 
+def addToDataFile( datafile, color, move, goBoard ):
+    # color is the color of the next person to move
+    # move is the move they decided to make
+    # goBoard represents the state of the board before they moved
+    # - we should flip the board and color so we are basically always black
+    # - we should calculate liberties at each position
+    # - we should get ko
+    # - and we should write to the file :-)
+    #
+    # planes we should write:
+    # 0: our stones with 1 liberty
+    # 1: our stones with 2 liberty
+    # 2: our stones with 3 or more liberties
+    # 3: their stones with 1 liberty
+    # 4: their stones with 2 liberty
+    # 5: their stones with 3 or more liberty
+    # 6: simple ko
+    # 7: board... 
+    (row,col) = move
+    enemyColor = goBoard.otherColor( color )
+    datafile.write('GO') # write something first, so we can sync/validate on reading
+    datafile.write(chr(row)) # write the move
+    datafile.write(chr(col))
+    for row in range( 0, goBoard.boardSize ):
+        for col in range( 0, goBoard.boardSize ):
+            thisbyte = 0
+            pos = (row,col)
+            if goBoard.board.get(pos) == color:
+                if goBoard.goStrings[pos].liberties.size() == 1:
+                    thisbyte = thisbyte | 1
+                elif goBoard.goStrings[pos].liberties.size() == 2:
+                    thisbyte = thisbyte | 2
+                else:
+                    thisbyte = thisbyte | 4
+            if goBoard.board.get(row,col) == enemyColor:
+                if goBoard.goStrings[pos].liberties.size() == 1:
+                    thisbyte = thisbyte | 8
+                elif goBoard.goStrings[pos].liberties.size() == 2:
+                    thisbyte = thisbyte | 16
+                else:
+                    thisbyte = thisbyte | 32
+            if goBoard.isSimpleKo( color, pos ):
+                thisbyte = thisbyte | 64
+            thisbyte = thisbyte | 128
+            datafile.write( chr(thisbyte) )
+
 def walkthroughSgf( datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
     # print sgf
@@ -93,13 +139,17 @@ def walkthroughSgf( datafile, sgfContents ):
         print 'handicap not zero, ignoring (' + str( sgf.get_handicap() ) + ')'
         return
     goBoard = GoBoard.GoBoard(19)
+    doneFirstMove = False
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
         print 'color ' + str(color)
         print move
-        if color != None:
+        if color != None and move != None:
             (row,col) = move
+            if doneFirstMove:
+                addToDataFile( datafile, color, move, goBoard )
             goBoard.applyMove( color, (19-1-row,col) )
+            doneFirstMove = True
             print goBoard
     print 'winner: ' + sgf.get_winner()
 
@@ -117,17 +167,22 @@ def parseSgfs2( datafile, sDirPath ):
         walkthroughSgf( datafile, contents )
         print sDirPath + '/' + sSgfFilename
         iCount = iCount + 1
-        if iCount > 1:
-            sys.exit(-1)
+#        if iCount > 1:
+#            return
 
 def parseSgfs( sTargetDirectory, iMaxFiles ):
+    iCount = 0
     for sDirname in os.listdir( sTargetDirectory ):
         sDirpath = sTargetDirectory + '/' + sDirname
         if os.path.isdir( sDirpath ) and not sDirname.startswith('~'):
             # create a data file for this directory, and read the sgfs into it...
             datafile = open( sTargetDirectory + '/' + sDirname + '.dat', 'wb' )
             parseSgfs2( datafile, sDirpath )
+            datafile.write('END')
             datafile.close()
+            iCount = iCount + 1
+            if iCount > iMaxFiles:
+                return
 
 def go(sTargetDirectory, iMaxFiles):
     print 'go'

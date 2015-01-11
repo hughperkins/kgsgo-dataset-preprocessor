@@ -57,7 +57,7 @@ class GoBoard(object):
             return 'b'
 
     def isSimpleKo( self, playColor, pos ):
-        enemyColor = otherColor( playColor )
+        enemyColor = self.otherColor( playColor )
         (row, col ) = pos
         # if exactly one stone captured on last move, then need to check for ko...
         if( self.ko_lastMoveNumCaptured == 1 ):
@@ -65,7 +65,7 @@ class GoBoard(object):
             ( lastMoveRow, lastMoveCol ) = self.ko_lastMove
             manhattanDistanceLastMove = abs( lastMoveRow - row ) + abs( lastMoveCol - col )
             if( manhattanDistanceLastMove == 1 ):
-                lastGoString = self.get((lastMoveRow,lastMoveCol))
+                lastGoString = self.goStrings.get((lastMoveRow,lastMoveCol))
                 if( lastGoString != None and lastGoString.numLiberties() == 1 ):
                     # apparently we do ....
                     # how many stones would we capture?  means, do we capture any others, that are 
