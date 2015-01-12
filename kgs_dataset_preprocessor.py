@@ -16,7 +16,7 @@ import sys,os,time, os.path
 import urllib
 import zipfile
 import shutil
-import numpy
+#import numpy
 import GoBoard
 import multiprocessing
 import signal
