@@ -192,7 +192,7 @@ def walkthroughSgf( datafile, sgfContents ):
             doneFirstMove = True
             #if moveIdx >= 120:
             #    sys.exit(-1)
-    print goBoard
+    #print goBoard
     #print 'winner: ' + sgf.get_winner()
 
 def loadSgf( datafile, sgfFilepath ):
@@ -240,7 +240,7 @@ def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
             if not os.path.isfile( sDirpath + '.dat' ):
                 dirsToDo.append( sDirpath )
             iCount = iCount + 1
-            if iCount > iMaxFiles:
+            if iMaxFiles > 0 and iCount > iMaxFiles:
                 break
     #for dirpath in dirsToDo:
     #    loadAllSgfs( dirpath )
