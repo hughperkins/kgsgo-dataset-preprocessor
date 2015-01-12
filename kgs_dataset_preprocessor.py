@@ -224,11 +224,13 @@ def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
     for sDirname in os.listdir( sTargetDirectory ):
         sDirpath = sTargetDirectory + '/' + sDirname
         if os.path.isdir( sDirpath ) and not sDirname.startswith('~'):
-            # create a data file for this directory, and read the sgfs into it...
-            datafile = open( sTargetDirectory + '/' + sDirname + '.dat', 'wb' )
-            loadAllSgfs( datafile, sDirpath )
-            datafile.write('END')
-            datafile.close()
+            if not os.path.isfile( sTargetDirectory + '/' + sDirname + '.dat' ):
+                # create a data file for this directory, and read the sgfs into it...
+                datafile = open( sTargetDirectory + '/' + sDirname + '.~dat', 'wb' )
+                loadAllSgfs( datafile, sDirpath )
+                datafile.write('END')
+                datafile.close()
+                os.rename( sTargetDirectory + '/' + sDirname + '.~dat', sTargetDirectory + '/' + sDirname + '.dat' )
             iCount = iCount + 1
             if iCount > iMaxFiles:
                 return
