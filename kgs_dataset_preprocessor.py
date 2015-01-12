@@ -60,7 +60,7 @@ def downloadFiles( sTargetDirectory, iMaxFiles ):
             if downloadUrl.endswith('.zip'):
                 print downloadUrl
                 sFilename = os.path.basename( downloadUrl )
-                if not os.path.isfile( sTargetDirectory + '/' + downloadUrl ):
+                if not os.path.isfile( sTargetDirectory + '/' + sFilename ):
                     print 'downloading ' + downloadUrl + ' ... '
                     urllib.urlretrieve ( downloadUrl, sTargetDirectory + '/~' + sFilename )
                     os.rename( sTargetDirectory + '/~' + sFilename, sTargetDirectory + '/' + sFilename )
