@@ -12,6 +12,8 @@
 # - internet is available
 # - on linux (since we're using signals)
 
+from __future__ import print_function
+
 import sys,os,time, os.path
 import urllib
 import zipfile
@@ -20,10 +22,9 @@ import shutil
 import GoBoard
 import multiprocessing
 import signal
-
 from os import sys, path
 mydir = path.dirname(path.abspath(__file__))
-print mydir
+print( mydir )
 sys.path.append(mydir + '/gomill' )
 import gomill
 import gomill.sgf
@@ -47,7 +48,7 @@ def downloadFiles( sTargetDirectory, iMaxFiles ):
             if os.path.isfile( sFilepath ) and not sFilename.startswith('~'):
                 iCount = iCount + 1
         if iCount >= iMaxFiles:
-            print 'reached limit of files you requested, skipping other downlaods'
+            print( 'reached limit of files you requested, skipping other downlaods' )
             return
     
     page = downloadPage( sKgsUrl )
@@ -58,15 +59,15 @@ def downloadFiles( sTargetDirectory, iMaxFiles ):
         if downloadUrlBit.startswith( "http://" ):
             downloadUrl = downloadUrlBit.split('">Download')[0]
             if downloadUrl.endswith('.zip'):
-                print downloadUrl
+                print( downloadUrl )
                 sFilename = os.path.basename( downloadUrl )
                 if not os.path.isfile( sTargetDirectory + '/' + sFilename ):
-                    print 'downloading ' + downloadUrl + ' ... '
+                    print( 'downloading ' + downloadUrl + ' ... ' )
                     urllib.urlretrieve ( downloadUrl, sTargetDirectory + '/~' + sFilename )
                     os.rename( sTargetDirectory + '/~' + sFilename, sTargetDirectory + '/' + sFilename )
         iCount = iCount + 1
         if iMaxFiles != -1 and iCount > iMaxFiles:
-            print 'reached limit of files you requested, skipping other downlaods'
+            print( 'reached limit of files you requested, skipping other downlaods' )
             return
 
 def unzipFiles( sTargetDirectory, iMaxFiles ):
@@ -78,13 +79,13 @@ def unzipFiles( sTargetDirectory, iMaxFiles ):
             thiszip = zipfile.ZipFile( sFilepath )
             zipdirname = thiszip.namelist()[0]
             if not os.path.isdir( sTargetDirectory + '/' + zipdirname ):
-                print 'unzipping ' + sFilepath + '...'
+                print( 'unzipping ' + sFilepath + '...' )
                 thiszip.extractall( sTargetDirectory + '/~' + zipdirname )
                 shutil.move( sTargetDirectory + '/~' + zipdirname + '/' + zipdirname, sTargetDirectory )
                 os.rmdir( sTargetDirectory + '/~' + zipdirname )
             iCount = iCount + 1
             if iMaxFiles != -1 and iCount > iMaxFiles:
-                print 'reached limit of files you requested, skipping other unzips'
+                print( 'reached limit of files you requested, skipping other unzips' )
                 return
 
 def addToDataFile( datafile, color, move, goBoard ):
@@ -156,7 +157,7 @@ def walkthroughSgf( datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
     # print sgf
     if sgf.get_size() != 19:
-        print 'boardsize not 19, ignoring'
+        print( 'boardsize not 19, ignoring' )
         return
     goBoard = GoBoard.GoBoard(19)
     doneFirstMove = False
@@ -201,20 +202,23 @@ def loadSgf( datafile, sgfFilepath ):
     sgfile.close()
 #        print contents
     if contents.find( 'SZ[19]' ) < 0:
-        print 'not 19x19, skipping'
+        print( 'not 19x19, skipping' )
         return
     try:
         walkthroughSgf( datafile, contents )
     except:
-        print "exception caught for file " + path.abspath( sgfFilepath )
+        print( "exception caught for file " + path.abspath( sgfFilepath ) )
         raise 
-    print sgfFilepath
+    #print( sgfFilepath )
 
 def loadAllSgfs( sDirPath ):
     iCount = 0
     datafile = open( sDirPath + '.~dat', 'wb' )
     for sSgfFilename in os.listdir( sDirPath ):
-        print sSgfFilename
+#        print sSgfFilename
+        print( '.', end='')
+        if iCount > 0 and iCount % 80 == 0:
+            print( "" )
         loadSgf( datafile, sDirPath + '/' + sSgfFilename )
         iCount = iCount + 1
     datafile.write('END')
@@ -226,7 +230,7 @@ def worker( sDirPath ):
     try:
        loadAllSgfs( sDirPath )
     except (KeyboardInterrupt, SystemExit):
-       print "Exiting child..."
+       print( "Exiting child..." )
 
 #def init_worker():
 #    signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -253,14 +257,14 @@ def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
 #        pool.close()
 #        pool.join()
     except KeyboardInterrupt:
-        print "Caught KeyboardInterrupt, terminating workers"
+        print( "Caught KeyboardInterrupt, terminating workers" )
         pool.terminate()
         pool.join()
-    print "done"
+    print( "done" )
     sys.exit(-1)
 
 def go(sTargetDirectory, iMaxFiles):
-    print 'go'
+    print( 'go' )
     if not os.path.isdir( sTargetDirectory ):
         os.makedirs( sTargetDirectory )
     downloadFiles( sTargetDirectory, iMaxFiles )
