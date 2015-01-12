@@ -143,20 +143,20 @@ def walkthroughSgf( datafile, sgfContents ):
     moveIdx = 0
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
-        print 'color ' + str(color)
-        print move
+        #print 'color ' + str(color)
+        #print move
         if color != None and move != None:
             (row,col) = move
             if doneFirstMove and datafile != None:
                 addToDataFile( datafile, color, move, goBoard )
-            print 'applying move ' + str( moveIdx )
-            goBoard.applyMove( color, (19-1-row,col) )
+            #print 'applying move ' + str( moveIdx )
+            goBoard.applyMove( color, (row,col) )
             moveIdx = moveIdx + 1
             doneFirstMove = True
-            print goBoard
-            if moveIdx >= 120:
-                sys.exit(-1)
-    print 'winner: ' + sgf.get_winner()
+            #if moveIdx >= 120:
+            #    sys.exit(-1)
+    print goBoard
+    #print 'winner: ' + sgf.get_winner()
 
 def loadSgf( datafile, sgfFilepath ):
     sgfile = open( sgfFilepath, 'r' )

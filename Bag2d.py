@@ -4,8 +4,6 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 # obtain one at http://mozilla.org/MPL/2.0/.
 
-import numpy as np
-
 # doubly-indexed collection of locations on a board
 # - given a location, can determine if it exists in the 'bag' of lcoations, in O(1)
 # - can iterate over the locations, in time O(1) per locations
@@ -14,64 +12,41 @@ class Bag2d(object):
     def __init__(self, boardSize):
         self.boardSize = boardSize
         self.pieces = []
-        self.board = np.zeros((boardSize,boardSize), dtype=np.int8)
-        self.numPieces = 0
-
-    def swapToEnd( self, index ):
-       indexCombo = self.pieces[index];
-       endCombo = self.pieces[numPieces - 1];
-       self.pieces[index] = endCombo;
-       self.pieces[numPieces - 1] = indexCombo;
-       ( indexRow, indexCol ) = indexCombo
-       ( endRow, endCol ) = endCombo
-       self.board[ indexRow, indexCol] = self.numPieces - 1
-       self.board[endRow, endCol] = index
+        self.board = {}
 
     def insert( self, combo ):
         ( row, col ) = combo
-        i1d = self.board[row,col]
-        if( i1d >= 0 and i1d < self.numPieces and self.pieces[i1d] == combo ):
+        if self.board.has_key(combo):
             return
         self.pieces.append( combo )
-        self.board[row,col] = self.numPieces
-        self.numPieces = self.numPieces + 1
+        self.board[combo] = len( self.pieces ) - 1
 
     def erase( self, combo ):
-        ( row, col ) = combo
-        i1d = self.board[row, col]
-        if( i1d >= 0 and i1d < self.numPieces and self.pieces[i1d] == combo ):
-            self.pieces[i1d] = self.pieces[sel.fnumPieces - 1]
-            movedcombo = self.pieces[i1d]
-            ( movedrow, movedcol ) = movedcombo
-            self.board[movedrow, movedcol] = i1d
-            self.numPieces = self.numPieces - 1
-
-    def erase( self, combo ):
-        ( row, col ) = combo
-        i1d = self.board[row, col]
-        if( i1d >= 0 and i1d < self.numPieces and self.pieces[i1d] == combo ):
-            self.pieces[i1d] = self.pieces[self.numPieces - 1];
-            movedcombo = self.pieces[i1d];
-            ( movedrow, movedcol ) = movedcombo
-            self.board[movedrow, movedcol] = i1d
-            self.numPieces = self.numPieces - 1
+        if not self.board.has_key(combo):
+            return
+        i1d = self.board[combo]
+        if i1d == len(self.pieces) - 1:
+            del self.pieces[i1d]
+            del self.board[combo]
+            return
+        self.pieces[i1d] = self.pieces[len(self.pieces) - 1]
+        del self.pieces[len(self.pieces) - 1]
+        movedcombo = self.pieces[i1d]
+        self.board[movedcombo] = i1d
+        del self.board[combo]
 
     def exists( self, combo ):
-        ( row, col ) = combo
-        i1d = self.board[row, col]
-        if( i1d >= 0 and i1d < self.numPieces and self.pieces[i1d] == combo ):
-            return True
-        return False
+        return self.board.has_key(combo)
 
     def size(self):
-        return self.numPieces
+        return len(self.pieces)
 
     def __getitem__( self, i1d ):
         return self.pieces[i1d]
 
     def __str__(self):
         result = 'Bag2d\n'
-        for row in range(0,self.boardSize ):
+        for row in range(self.boardSize - 1, -1, -1 ):
             thisline = ""
             for col in range(0, self.boardSize):
                 if self.exists( (row, col) ):

@@ -87,16 +87,20 @@ class GoBoard(object):
     def checkEnemyLiberty( self, playColor, enemyPos, ourPos ):
         (enemyrow, enemycol) = enemyPos
         (ourrow, ourcol) = ourPos
+#        print "checkEnemyLiberty enemy " + str(enemyPos) + " us " + str(ourPos)
         if( enemyrow < 0 or enemyrow >= self.boardSize or enemycol < 0 or enemycol >= self.boardSize ):
             return
         enemyColor = self.otherColor( playColor )
         if self.board.get(enemyPos) != enemyColor:
             # not enemy
+#            print 'not enemy: ' + str(self.board.get(enemyPos)) + ' vs ' + str(enemyColor)
             return
         enemyString = self.goStrings[enemyPos]
         if( enemyString == None ):
             raise("checkenemyliberty 1 " )
+#        print 'before removeliberty: ' + str( enemyString )
         enemyString.removeLiberty( ourPos )
+#        print 'after removeliberty: ' + str( enemyString ) + ' numliberties:' + str(enemyString.numLiberties() )
         if( enemyString.numLiberties() == 0 ):
             # killed it!
             # remove all pieces of this string from the board
@@ -159,7 +163,7 @@ class GoBoard(object):
 
     def __str__(self):
         result = 'GoBoard\n'
-        for i in range(0,self.boardSize):
+        for i in range(self.boardSize - 1, -1, -1):
             line = ''
             for j in range(0,self.boardSize):
                 thispiece = self.board.get((i,j))
