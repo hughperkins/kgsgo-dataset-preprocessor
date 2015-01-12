@@ -216,9 +216,9 @@ def loadAllSgfs( sDirPath ):
     datafile = open( sDirPath + '.~dat', 'wb' )
     for sSgfFilename in os.listdir( sDirPath ):
 #        print sSgfFilename
-        print( '.', end='')
+        #print( '.', end='')
         if iCount > 0 and iCount % 80 == 0:
-            print( "" )
+            print( "processed " + str(iCount) + " sgf files" )
         loadSgf( datafile, sDirPath + '/' + sSgfFilename )
         iCount = iCount + 1
     datafile.write('END')
