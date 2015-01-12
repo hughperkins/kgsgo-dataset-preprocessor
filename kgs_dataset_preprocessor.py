@@ -19,8 +19,8 @@ import numpy
 import GoBoard
 
 from os import sys, path
-mydir = path.dirname(path.dirname(path.abspath(__file__)))
-    #print mydir
+mydir = path.dirname(path.abspath(__file__))
+print mydir
 sys.path.append(mydir + '/gomill' )
 import gomill
 import gomill.sgf
@@ -140,44 +140,56 @@ def walkthroughSgf( datafile, sgfContents ):
         return
     goBoard = GoBoard.GoBoard(19)
     doneFirstMove = False
+    moveIdx = 0
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
         print 'color ' + str(color)
         print move
         if color != None and move != None:
             (row,col) = move
-            if doneFirstMove:
+            if doneFirstMove and datafile != None:
                 addToDataFile( datafile, color, move, goBoard )
+            print 'applying move ' + str( moveIdx )
             goBoard.applyMove( color, (19-1-row,col) )
+            moveIdx = moveIdx + 1
             doneFirstMove = True
             print goBoard
+            if moveIdx >= 120:
+                sys.exit(-1)
     print 'winner: ' + sgf.get_winner()
 
-def parseSgfs2( datafile, sDirPath ):
+def loadSgf( datafile, sgfFilepath ):
+    sgfile = open( sgfFilepath, 'r' )
+    contents = sgfile.read()
+    sgfile.close()
+#        print contents
+    if contents.find( 'SZ[19]' ) < 0:
+        print 'not 19x19, skipping'
+        return
+    try:
+        walkthroughSgf( datafile, contents )
+    except:
+        print "exception caught for file " + path.abspath( sgfFilepath )
+        raise 
+    print sgfFilepath
+
+def loadAllSgfs( datafile, sDirPath ):
     iCount = 0
     for sSgfFilename in os.listdir( sDirPath ):
         print sSgfFilename
-        sgfile = open( sDirPath + '/' + sSgfFilename, 'r' )
-        contents = sgfile.read()
-        sgfile.close()
-#        print contents
-        if contents.find( 'SZ[19]' ) < 0:
-            print 'not 19x19, skipping'
-            continue
-        walkthroughSgf( datafile, contents )
-        print sDirPath + '/' + sSgfFilename
+        loadSgf( datafile, sDirPath + '/' + sSgfFilename )
         iCount = iCount + 1
 #        if iCount > 1:
 #            return
 
-def parseSgfs( sTargetDirectory, iMaxFiles ):
+def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
     iCount = 0
     for sDirname in os.listdir( sTargetDirectory ):
         sDirpath = sTargetDirectory + '/' + sDirname
         if os.path.isdir( sDirpath ) and not sDirname.startswith('~'):
             # create a data file for this directory, and read the sgfs into it...
             datafile = open( sTargetDirectory + '/' + sDirname + '.dat', 'wb' )
-            parseSgfs2( datafile, sDirpath )
+            loadAllSgfs( datafile, sDirpath )
             datafile.write('END')
             datafile.close()
             iCount = iCount + 1
@@ -190,7 +202,7 @@ def go(sTargetDirectory, iMaxFiles):
         os.makedirs( sTargetDirectory )
     downloadFiles( sTargetDirectory, iMaxFiles )
     unzipFiles( sTargetDirectory, iMaxFiles )
-    parseSgfs( sTargetDirectory, iMaxFiles )
+    loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles )
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
