@@ -10,6 +10,7 @@
 # - at least python 2.7
 # - not python 3.x
 # - internet is available
+# - on linux (since we're using signals)
 
 import sys,os,time, os.path
 import urllib
@@ -17,6 +18,8 @@ import zipfile
 import shutil
 import numpy
 import GoBoard
+import multiprocessing
+import signal
 
 from os import sys, path
 mydir = path.dirname(path.abspath(__file__))
@@ -207,30 +210,54 @@ def loadSgf( datafile, sgfFilepath ):
         raise 
     print sgfFilepath
 
-def loadAllSgfs( datafile, sDirPath ):
+def loadAllSgfs( sDirPath ):
     iCount = 0
+    datafile = open( sDirPath + '.~dat', 'wb' )
     for sSgfFilename in os.listdir( sDirPath ):
         print sSgfFilename
         loadSgf( datafile, sDirPath + '/' + sSgfFilename )
         iCount = iCount + 1
-#        if iCount > 1:
-#            return
+    datafile.write('END')
+    datafile.close()
+    os.rename( sDirPath + '.~dat', sDirPath + '.dat' )
+
+def worker( sDirPath ):
+#    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+       loadAllSgfs( sDirPath )
+    except (KeyboardInterrupt, SystemExit):
+       print "Exiting child..."
+
+#def init_worker():
+#    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
     iCount = 0
+    dirsToDo = []
     for sDirname in os.listdir( sTargetDirectory ):
         sDirpath = sTargetDirectory + '/' + sDirname
         if os.path.isdir( sDirpath ) and not sDirname.startswith('~'):
-            if not os.path.isfile( sTargetDirectory + '/' + sDirname + '.dat' ):
-                # create a data file for this directory, and read the sgfs into it...
-                datafile = open( sTargetDirectory + '/' + sDirname + '.~dat', 'wb' )
-                loadAllSgfs( datafile, sDirpath )
-                datafile.write('END')
-                datafile.close()
-                os.rename( sTargetDirectory + '/' + sDirname + '.~dat', sTargetDirectory + '/' + sDirname + '.dat' )
+            if not os.path.isfile( sDirpath + '.dat' ):
+                dirsToDo.append( sDirpath )
             iCount = iCount + 1
             if iCount > iMaxFiles:
-                return
+                break
+    #for dirpath in dirsToDo:
+    #    loadAllSgfs( dirpath )
+    cores = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool( processes = cores )
+#    pool.map( loadAllSgfs, dirsToDo )
+    p = pool.map_async( worker, dirsToDo )
+    try:
+        results = p.get(0xFFFF)
+#        pool.close()
+#        pool.join()
+    except KeyboardInterrupt:
+        print "Caught KeyboardInterrupt, terminating workers"
+        pool.terminate()
+        pool.join()
+    print "done"
+    sys.exit(-1)
 
 def go(sTargetDirectory, iMaxFiles):
     print 'go'
