@@ -130,6 +130,25 @@ def addToDataFile( datafile, color, move, goBoard ):
             thisbyte = thisbyte | 128
             datafile.write( chr(thisbyte) )
 
+#def getHandicapPoints( numhandicap ):
+#    if numhandicap == 4:
+#        return [(3,3),(15,3),(15,15,),(3,15)]
+#    if numhandicap == 3:
+#        return [(3,3),(15,15,),(3,15)]
+#    if numhandicap == 2:
+#        return [(3,3),(15,15,)]
+#    if numhandicap == 5:
+#        return [(3,3),(15,3),(15,15,),(3,15),(9,9)]
+#    if numhandicap == 6:
+#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15)]
+#    if numhandicap == 7:
+#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(9,9)]
+#    if numhandicap == 8:
+#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9)]
+#    if numhandicap == 8:
+#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9),(9,9)]
+#    raise Exception("dont know how to handle handicap: " + str(numhandicap) )
+
 def walkthroughSgf( datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
     # print sgf
@@ -142,38 +161,16 @@ def walkthroughSgf( datafile, sgfContents ):
         #print 'handicap not zero, ignoring (' + str( sgf.get_handicap() ) + ')'
         #handicappoints = gomill.handicap_layout.handicap_points( sgf.get_handicap(), 19 )
         numhandicap = sgf.get_handicap()
+        #print sgf.get_root().get_setup_stones()
+        #sys.exit(-1)
+        #for move in getHandicapPoints( numhandicap ):
+        for set in sgf.get_root().get_setup_stones():
+            #print set
+            for move in set:
+                #print move
+                goBoard.applyMove( 'b', move )
+        #sys.exit(-1)
         #print 'handicap: ' + str(numhandicap)
-        if numhandicap == 4:
-            for move in [(3,3),(15,3),(15,15,),(3,15)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 3:
-            for move in [(3,3),(15,15,),(3,15)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 2:
-            for move in [(3,3),(15,15,)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 5:
-            for move in [(3,3),(15,3),(15,15,),(3,15),(9,9)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 6:
-            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 7:
-            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(9,9)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 8:
-            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap == 8:
-            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9),(9,9)]:
-                goBoard.applyMove( 'b', move )
-        if numhandicap > 9:
-            raise Exception("dont know how to handle handicap more than 4: " + str(numhandicap) )
-        if numhandicap == 1:
-            raise Exception("dont know how to handle handicap 1: " + str(numhandicap))
-#        for point in handicappoints:
-#            print 'handicappoint: ' + str(point)
-#            goBoard.applyMove('b', point )
         doneFirstMove = True
         #sys.exit(-1)
     moveIdx = 0
