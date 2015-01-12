@@ -6,7 +6,7 @@
 
 import GoString
 import Bag2d
-import numpy as np
+#import numpy as np
 
 # a go board, can apply moves to it, contains gostrings, including their pieces, liberties etc
 # can check for simple ko, and handle captures
