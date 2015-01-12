@@ -268,11 +268,9 @@ def go(sTargetDirectory, iMaxFiles):
     loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles )
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print 'Usage: ' + sys.argv[0] + ' [targetdirectory] [[maxfiles]]'
-        print '[maxfiles] is optional argument, to limit how many files to download/process'
-        sys.exit(-1)
-    sTargetDirectory = sys.argv[1]
+    sTargetDirectory = 'data'
+    if len(sys.argv) >= 2:
+        sTargetDirectory = sys.argv[1]
     iMaxFiles = -1
     if len(sys.argv) >= 3:
         iMaxFiles = int( sys.argv[2] )
