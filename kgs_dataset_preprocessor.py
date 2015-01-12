@@ -24,6 +24,7 @@ print mydir
 sys.path.append(mydir + '/gomill' )
 import gomill
 import gomill.sgf
+#import gomill.handicap_layout
 
 sKgsUrl = 'http://u-go.net/gamerecords/'
 
@@ -135,11 +136,46 @@ def walkthroughSgf( datafile, sgfContents ):
     if sgf.get_size() != 19:
         print 'boardsize not 19, ignoring'
         return
-    if sgf.get_handicap() != None and sgf.get_handicap() != 0:
-        print 'handicap not zero, ignoring (' + str( sgf.get_handicap() ) + ')'
-        return
     goBoard = GoBoard.GoBoard(19)
     doneFirstMove = False
+    if sgf.get_handicap() != None and sgf.get_handicap() != 0:
+        #print 'handicap not zero, ignoring (' + str( sgf.get_handicap() ) + ')'
+        #handicappoints = gomill.handicap_layout.handicap_points( sgf.get_handicap(), 19 )
+        numhandicap = sgf.get_handicap()
+        #print 'handicap: ' + str(numhandicap)
+        if numhandicap == 4:
+            for move in [(3,3),(15,3),(15,15,),(3,15)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 3:
+            for move in [(3,3),(15,15,),(3,15)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 2:
+            for move in [(3,3),(15,15,)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 5:
+            for move in [(3,3),(15,3),(15,15,),(3,15),(9,9)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 6:
+            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 7:
+            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(9,9)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 8:
+            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap == 8:
+            for move in [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9),(9,9)]:
+                goBoard.applyMove( 'b', move )
+        if numhandicap > 9:
+            raise Exception("dont know how to handle handicap more than 4: " + str(numhandicap) )
+        if numhandicap == 1:
+            raise Exception("dont know how to handle handicap 1: " + str(numhandicap))
+#        for point in handicappoints:
+#            print 'handicappoint: ' + str(point)
+#            goBoard.applyMove('b', point )
+        doneFirstMove = True
+        #sys.exit(-1)
     moveIdx = 0
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
@@ -151,6 +187,7 @@ def walkthroughSgf( datafile, sgfContents ):
                 addToDataFile( datafile, color, move, goBoard )
             #print 'applying move ' + str( moveIdx )
             goBoard.applyMove( color, (row,col) )
+            #print goBoard
             moveIdx = moveIdx + 1
             doneFirstMove = True
             #if moveIdx >= 120:
