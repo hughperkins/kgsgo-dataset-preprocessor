@@ -73,7 +73,7 @@ def unzipFiles( sTargetDirectory, iMaxFiles ):
     iCount = 0
     for sFilename in os.listdir( sTargetDirectory ):
         sFilepath = sTargetDirectory + '/' + sFilename
-        if os.path.isfile( sFilepath ) and not sFilename.startswith('~'):
+        if os.path.isfile( sFilepath ) and not sFilename.startswith('~') and sFilename.endswith('.zip'):
             #print sFilepath
             thiszip = zipfile.ZipFile( sFilepath )
             zipdirname = thiszip.namelist()[0]
