@@ -20,9 +20,8 @@ Type:
 #Results
 
 - the datasets are downloaded from http://u-go.net/gamerecords/, into `data` subdirectory
-- decompressed into sgf files, in subdirectories of `data`
 - processed into .dat files, with the same name as the unzipped zip files, just with `.dat` instead of `.zip`, also in `data` directory
-- you can then join the resulting .dat files together eg with `cat *.dat > kgsgo-clarkstorkey.dat`
+- finally, consolidated together, into one .dat file `kgsgo.dat`, in the `data` subdirectory
 
 #Data format of resulting file
 

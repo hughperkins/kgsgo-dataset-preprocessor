@@ -12,7 +12,7 @@
 # - internet is available
 # - on linux (since we're using signals)
 
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import sys,os,time, os.path
 import urllib
@@ -66,9 +66,25 @@ def downloadFiles( sTargetDirectory, iMaxFiles ):
                     urllib.urlretrieve ( downloadUrl, sTargetDirectory + '/~' + sFilename )
                     os.rename( sTargetDirectory + '/~' + sFilename, sTargetDirectory + '/' + sFilename )
         iCount = iCount + 1
-        if iMaxFiles != -1 and iCount > iMaxFiles:
+        if iMaxFiles != -1 and iCount >= iMaxFiles:
             print( 'reached limit of files you requested, skipping other downlaods' )
             return
+
+# should unzip sZipfilename inside a directory with same name, but '.zip' removed
+# will unzip to create a new subdirectory inside this directory, so the sgfs will be two levels
+# down
+# this way the top level subdirectory name matches the zipfile name, so easy to reconcile/match
+def unzipFile( sTargetDirectory, sZipfilename ):
+    zipfilepath = sTargetDirectory + '/' + sZipfilename
+    thiszip = zipfile.ZipFile( zipfilepath )
+    zipdirname = thiszip.namelist()[0]
+    print( 'unzipping ' + zipfilepath + '...' )
+    thiszip.extractall( sTargetDirectory + '/~' + sZipfilename.replace(".zip","~" ) )
+    sBasename = replace( sZipfilename, ".zip","" )
+    os.rename( sTargetDirectory + '/~' + sBasename, sTargetDirectory + '/' + sBasename )
+    #shutil.move( sTargetDirectory + '/~' + zipdirname + '/' + zipdirname, sTargetDirectory )
+    #os.rmdir( sTargetDirectory + '/~' + zipdirname )
+    return sTargetDirectory + '/' + sBasename + '/' + zipdirname
 
 def unzipFiles( sTargetDirectory, iMaxFiles ):
     iCount = 0
@@ -134,25 +150,6 @@ def addToDataFile( datafile, color, move, goBoard ):
             thisbyte = thisbyte | 128
             datafile.write( chr(thisbyte) )
 
-#def getHandicapPoints( numhandicap ):
-#    if numhandicap == 4:
-#        return [(3,3),(15,3),(15,15,),(3,15)]
-#    if numhandicap == 3:
-#        return [(3,3),(15,15,),(3,15)]
-#    if numhandicap == 2:
-#        return [(3,3),(15,15,)]
-#    if numhandicap == 5:
-#        return [(3,3),(15,3),(15,15,),(3,15),(9,9)]
-#    if numhandicap == 6:
-#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15)]
-#    if numhandicap == 7:
-#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(9,9)]
-#    if numhandicap == 8:
-#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9)]
-#    if numhandicap == 8:
-#        return [(3,3),(15,3),(15,15,),(3,15),(9,3),(9,15),(3,9),(15,9),(9,9)]
-#    raise Exception("dont know how to handle handicap: " + str(numhandicap) )
-
 def walkthroughSgf( datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
     # print sgf
@@ -193,7 +190,7 @@ def walkthroughSgf( datafile, sgfContents ):
             doneFirstMove = True
             #if moveIdx >= 120:
             #    sys.exit(-1)
-    #print goBoard
+    #print( goBoard )
     #print 'winner: ' + sgf.get_winner()
 
 def loadSgf( datafile, sgfFilepath ):
@@ -225,33 +222,80 @@ def loadAllSgfs( sDirPath ):
     datafile.close()
     os.rename( sDirPath + '.~dat', sDirPath + '.dat' )
 
-def worker( sDirPath ):
+# unzip the zip, process the sgfs to .dat, and remove the unzipped directory
+def processZip( sDirectoryName, sZipfilename  ):
+    sBasename = sZipfilename.replace('.zip', '')
+    thiszip = zipfile.ZipFile( sDirectoryName + '/' + sZipfilename )
+    datafile = open( sDirectoryName + '/' + sBasename + '.~dat', 'wb' )
+    for name in thiszip.namelist():
+        print( name )
+        if name.endswith('.sgf'):
+            contents = thiszip.read( name )
+            #print( contents )
+            walkthroughSgf( datafile, contents )
+            #break
+    datafile.write('END')
+    datafile.close()
+    os.rename( sDirectoryName + '/' + sBasename + '.~dat', sDirectoryName + '/' + sBasename + '.dat' )
+    
+    #unzippedDirectory = unzipFile( sDirectoryName, sZipfilename )
+    #sBasename = sZipfilename.replace( ".zip", "" )
+    #datafile = open( sDirectoryName + '/' + sBasename + '.~dat', 'wb' )
+    #for sSgfFilename in os.listdir( unzippedDirectory ):
+#        loadSgf( datafile, sDirPath + '/' + sSgfFilename )
+#        iCount = iCount + 1
+#    datafile.write('END')
+#    datafile.close()
+#    os.rename( sDirectoryName + '/' + sBasename + '.~dat', sDirectoryName + '/' + sBasename + '.dat' )
+#    shutil.rmtree( sDirectoryName + '/' + sBasename
+    
+def worker( directoryandzipfilepath ):
 #    signal.signal(signal.SIGINT, signal.SIG_IGN)
     try:
-       loadAllSgfs( sDirPath )
+        (sDirectoryName, sZipfilename ) = directoryandzipfilepath
+        processZip( sDirectoryName, sZipfilename )
     except (KeyboardInterrupt, SystemExit):
        print( "Exiting child..." )
 
 #def init_worker():
 #    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
+def createSingleDat( targetDirectory ):
+    print( 'creating consolidated .dat...' )
+    consolidatedfile = open( targetDirectory + '/kgsgo.~dat', 'wb' )
+    for filename in os.listdir( sTargetDirectory ):
+        filepath = sTargetDirectory + '/' + filename
+        if os.path.isfile( filepath ) and filename.endswith('.dat'):
+            singledat = open( filepath, 'rb' )
+            data = singledat.read()
+            if data[-3:] != 'END':
+                print( 'Invalid file, doesnt end with END' )
+            consolidatedfile.write( data[:-3] )
+            singledat.close()
+    consolidatedfile.write( 'END' )
+    consolidatedfile.close()
+    os.rename( targetDirectory + '/kgsgo.~dat', targetDirectory + '/kgsgo.dat' )
+
+# for each .zip file, if no .dat file, then unzip, process the sgfs, and create the .dat
+# then remove the unzipped directory
+def zipsToDats( sTargetDirectory, iMaxFiles ):
     iCount = 0
-    dirsToDo = []
-    for sDirname in os.listdir( sTargetDirectory ):
-        sDirpath = sTargetDirectory + '/' + sDirname
-        if os.path.isdir( sDirpath ) and not sDirname.startswith('~'):
-            if not os.path.isfile( sDirpath + '.dat' ):
-                dirsToDo.append( sDirpath )
+    zipsToDo = []
+    for sZipfilename in os.listdir( sTargetDirectory ):
+        #sFilepath = sTargetDirectory + '/' + 
+        if sZipfilename.endswith('.zip'):
+            sBasename = sZipfilename.replace('.zip','')
+            if not os.path.isfile( sTargetDirectory + '/' + sBasename + '.dat' ):
+                zipsToDo.append( ( sTargetDirectory, sZipfilename ) )
             iCount = iCount + 1
-            if iMaxFiles > 0 and iCount > iMaxFiles:
+            if iMaxFiles > 0 and iCount >= iMaxFiles:
                 break
     #for dirpath in dirsToDo:
     #    loadAllSgfs( dirpath )
     cores = multiprocessing.cpu_count()
     pool = multiprocessing.Pool( processes = cores )
 #    pool.map( loadAllSgfs, dirsToDo )
-    p = pool.map_async( worker, dirsToDo )
+    p = pool.map_async( worker, zipsToDo )
     try:
         results = p.get(0xFFFF)
 #        pool.close()
@@ -260,16 +304,17 @@ def loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles ):
         print( "Caught KeyboardInterrupt, terminating workers" )
         pool.terminate()
         pool.join()
-    print( "done" )
-    sys.exit(-1)
+        sys.exit(-1)
 
 def go(sTargetDirectory, iMaxFiles):
     print( 'go' )
     if not os.path.isdir( sTargetDirectory ):
         os.makedirs( sTargetDirectory )
     downloadFiles( sTargetDirectory, iMaxFiles )
-    unzipFiles( sTargetDirectory, iMaxFiles )
-    loadAllUnzippedDirectories( sTargetDirectory, iMaxFiles )
+    # unzipFiles( sTargetDirectory, iMaxFiles )
+    zipsToDats( sTargetDirectory, iMaxFiles )
+    # make one single .dat file
+    createSingleDat(sTargetDirectory)
 
 if __name__ == '__main__':
     sTargetDirectory = 'data'
