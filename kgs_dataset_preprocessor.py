@@ -138,7 +138,7 @@ def addToDataFile( datafile, color, move, goBoard ):
                     thisbyte = thisbyte | 2
                 else:
                     thisbyte = thisbyte | 4
-            if goBoard.board.get(row,col) == enemyColor:
+            if goBoard.board.get(pos) == enemyColor:
                 if goBoard.goStrings[pos].liberties.size() == 1:
                     thisbyte = thisbyte | 8
                 elif goBoard.goStrings[pos].liberties.size() == 2:
