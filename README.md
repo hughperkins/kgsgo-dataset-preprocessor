@@ -62,6 +62,15 @@ Planned design, not implemented yet:
   * plane 6: location would be an illegal simple-ko
   * plane 7: always 1 (represents the valid area of the board, since we might be zero-padding the images during CNN training)
 
+#MD5sum
+
+When I run it, I get md5sums:
+```
+850d2c91b684de45f39a205378fd7967  kgsgo-test.dat
+80cfa39797fa1ea32af30191b2fb962c  kgsgo-train10k.dat
+```
+If it's different, it doesn't necessarily matter, but if it's the same, it's a good sign :-)
+
 #Third-party libraries used
 
 * [gomill](https://github.com/mattheww/gomill.git)
