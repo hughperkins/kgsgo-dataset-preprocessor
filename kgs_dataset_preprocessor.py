@@ -261,7 +261,12 @@ def zipsToDats( sTargetDirectory, samplesList, name ):
 
 def createSingleDat( targetDirectory, name, samples ):
     print( 'creating consolidated .dat...' )
-    
+
+    filePath = targetDirectory + '/kgsgo-' + name + '.dat'    
+    if os.path.isfile( filePath ):
+        print( 'consolidated file ' + filePath + ' already exists :-)' )
+        return
+
     # first check if we have all files
     # first need to get the names of all files
     datfilesNeeded = set()
@@ -280,7 +285,6 @@ def createSingleDat( targetDirectory, name, samples ):
             print( 'Missing dat file: ' + datfilename )
             sys.exit(-1)
 
-    filePath = targetDirectory + '/kgsgo-' + name + '.dat'
     consolidatedfile = open( filePath + '~', 'wb' )
     for filename in datfilenames:
         print( 'reading from ' + filename + ' ...' )
@@ -301,6 +305,7 @@ def go(sTargetDirectory, iMaxFiles):
         os.makedirs( sTargetDirectory )
     index_processor.get_fileInfos( sTargetDirectory )
     zip_downloader.downloadFiles( sTargetDirectory )
+
     test_samples = dataset_partitioner.draw_test_samples( sTargetDirectory )
     zipsToDats( sTargetDirectory, test_samples, 'test' )
     createSingleDat(sTargetDirectory, 'test', test_samples )
