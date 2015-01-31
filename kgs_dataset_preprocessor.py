@@ -127,6 +127,7 @@ def addToDataFile( datafile, color, move, goBoard ):
     datafile.write('GO') # write something first, so we can sync/validate on reading
     datafile.write(chr(row)) # write the move
     datafile.write(chr(col))
+#    print( 'writing move: ' + str(row) + "," + str(col))
     for row in range( 0, goBoard.boardSize ):
         for col in range( 0, goBoard.boardSize ):
             thisbyte = 0
@@ -149,6 +150,9 @@ def addToDataFile( datafile, color, move, goBoard ):
                 thisbyte = thisbyte | 64
             thisbyte = thisbyte | 128
             datafile.write( chr(thisbyte) )
+            #print ( str( thisbyte - 128 ) + ' ', end= '')
+        #print ( '')
+    #print ( '')
 
 def walkthroughSgf( datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
@@ -171,14 +175,14 @@ def walkthroughSgf( datafile, sgfContents ):
                 #print move
                 goBoard.applyMove( 'b', move )
         #sys.exit(-1)
-        #print 'handicap: ' + str(numhandicap)
+#        print( 'handicap: ' + str(numhandicap) )
         doneFirstMove = True
         #sys.exit(-1)
     moveIdx = 0
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
-        #print 'color ' + str(color)
-        #print move
+#        print( 'color ' + str(color) )
+#        print( move )
         if color != None and move != None:
             (row,col) = move
             if doneFirstMove and datafile != None:
@@ -233,6 +237,7 @@ def processZip( sDirectoryName, sZipfilename  ):
             contents = thiszip.read( name )
             #print( contents )
             walkthroughSgf( datafile, contents )
+#            sys.exit(-1)
             #break
     datafile.write('END')
     datafile.close()
