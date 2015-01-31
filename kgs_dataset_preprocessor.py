@@ -30,46 +30,6 @@ import gomill
 import gomill.sgf
 #import gomill.handicap_layout
 
-sKgsUrl = 'http://u-go.net/gamerecords/'
-
-def downloadPage( url ):
-    fp = urllib.urlopen(url)
-    data = fp.read()
-    fp.close()
-    return data
-
-def downloadFiles( sTargetDirectory, iMaxFiles ):
-    global sKgsUrl
-    # first, ocunt how many we've downlaoded ,to save downlaoding the index page again
-    if iMaxFiles != -1:
-        iCount = 0
-        for sFilename in os.listdir( sTargetDirectory ):
-            sFilepath = sTargetDirectory + '/' + sFilename
-            if os.path.isfile( sFilepath ) and not sFilename.startswith('~'):
-                iCount = iCount + 1
-        if iCount >= iMaxFiles:
-            print( 'reached limit of files you requested, skipping other downlaods' )
-            return
-    
-    page = downloadPage( sKgsUrl )
-#    print page
-    splitpage = page.split('<a href="')
-    iCount = 0
-    for downloadUrlBit in splitpage:
-        if downloadUrlBit.startswith( "http://" ):
-            downloadUrl = downloadUrlBit.split('">Download')[0]
-            if downloadUrl.endswith('.zip'):
-                print( downloadUrl )
-                sFilename = os.path.basename( downloadUrl )
-                if not os.path.isfile( sTargetDirectory + '/' + sFilename ):
-                    print( 'downloading ' + downloadUrl + ' ... ' )
-                    urllib.urlretrieve ( downloadUrl, sTargetDirectory + '/~' + sFilename )
-                    os.rename( sTargetDirectory + '/~' + sFilename, sTargetDirectory + '/' + sFilename )
-        iCount = iCount + 1
-        if iMaxFiles != -1 and iCount >= iMaxFiles:
-            print( 'reached limit of files you requested, skipping other downlaods' )
-            return
-
 # should unzip sZipfilename inside a directory with same name, but '.zip' removed
 # will unzip to create a new subdirectory inside this directory, so the sgfs will be two levels
 # down

@@ -6,7 +6,7 @@ __pycache__/
 *.so
 
 # data
-data/
+data
 
 # Distribution / packaging
 .Python
