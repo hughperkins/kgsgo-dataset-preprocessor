@@ -19,9 +19,14 @@ Type:
 
 #Results
 
+Planned design, not implemented yet:
 - the datasets are downloaded from http://u-go.net/gamerecords/, into `data` subdirectory
 - processed into .dat files, with the same name as the unzipped zip files, just with `.dat` instead of `.zip`, also in `data` directory
-- finally, consolidated together, into one .dat file `kgsgo.dat`, in the `data` subdirectory
+- finally, consolidated together, into two .dat file, in the `data` subdirectory:
+  - `kgsgo-train.dat`
+  - `kgsgo-test.dat`
+- `kgsgo-test.dat` contains the data from 100 games, randomly selected
+- `kgsgo-train.dat` contains the data from the other games, in no particular order, unshuffled
 
 #Data format of resulting file
 
@@ -52,4 +57,7 @@ Type:
   * plane 6: location would be an illegal simple-ko
   * plane 7: always 1 (represents the valid area of the board, since we might be zero-padding the images during CNN training)
 
+#Related projects
+
+I'm building a convolutional network library in OpenCL, aiming to train this, at [ClConvolve](https://github.com/hughperkins/ClConvolve)
 
