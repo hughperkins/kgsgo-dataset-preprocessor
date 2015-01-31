@@ -9,6 +9,12 @@
 # simply manages downloading the main index.html page, and storing the contents in datastructures...
 
 from __future__ import print_function, unicode_literals, division, absolute_import
+from os import path, sys
+sys.path.append( path.dirname(path.abspath(__file__)) + '/thirdparty/future/src' )
+from builtins import ( bytes, dict, int, list, object, range, str, ascii, chr,
+   hex, input, next, oct, open, pow, round, super, filter, map, zip )
+from future.standard_library import install_aliases
+install_aliases()
 
 import sys, os, time
 import urllib
@@ -20,7 +26,7 @@ fileInfos = [] # dict of: url, filename, numGames
 
 def downloadPage( url ):
     fp = urllib.urlopen(url)
-    data = fp.read()
+    data = unicode( fp.read() )
     fp.close()
     return data
 
@@ -36,10 +42,12 @@ def load_index( dataDirectory ):
         #print('no cached_indexpage.py found')
         print('downloading index page...')
         indexpagecontents = downloadPage( sKgsUrl )
+        print( indexpagecontents )
+        print( type( indexpagecontents ) )
         indexpagefile = open( 'cached_indexpage.~html', 'w')
         indexpagefile.write( indexpagecontents )
         indexpagefile.close()
-        os.rename( 'cached_indexpage.~html', 'cached_indexpage.html' )
+        os.rename( dataDirectory + 'cached_indexpage.html' )
 #    print page
     splitpage = indexpagecontents.split('<a href="')
     urls = []

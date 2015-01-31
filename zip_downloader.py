@@ -9,6 +9,10 @@
 # this module will download the modules from the kgsgo archive site
 
 from __future__ import print_function, unicode_literals, division, absolute_import
+from os import path, sys
+sys.path.append( path.dirname(path.abspath(__file__)) + '/thirdparty/future/src' )
+from builtins import ( bytes, dict, int, list, object, range, str, ascii, chr,
+   hex, input, next, oct, open, pow, round, super, filter, map, zip )
 
 import sys, os, time
 import urllib
