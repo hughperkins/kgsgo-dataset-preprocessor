@@ -223,22 +223,6 @@ def worker( jobinfo ):
     except Exception as e:
        print( e )
 
-def createSingleDat( targetDirectory ):
-    print( 'creating consolidated .dat...' )
-    consolidatedfile = open( targetDirectory + '/kgsgo.~dat', 'wb' )
-    for filename in os.listdir( sTargetDirectory ):
-        filepath = sTargetDirectory + '/' + filename
-        if os.path.isfile( filepath ) and filename.endswith('.dat'):
-            singledat = open( filepath, 'rb' )
-            data = singledat.read()
-            if data[-3:] != 'END':
-                print( 'Invalid file, doesnt end with END' )
-            consolidatedfile.write( data[:-3] )
-            singledat.close()
-    consolidatedfile.write( 'END' )
-    consolidatedfile.close()
-    os.rename( targetDirectory + '/kgsgo.~dat', targetDirectory + '/kgsgo.dat' )
-
 # for each .zip file, if no .dat file, then unzip, process the sgfs, and create the .dat
 # then remove the unzipped directory
 # will use name parameter in name of dat file, and will only include games in the list
@@ -275,6 +259,42 @@ def zipsToDats( sTargetDirectory, samplesList, name ):
         pool.join()
         sys.exit(-1)
 
+def createSingleDat( targetDirectory, name, samples ):
+    print( 'creating consolidated .dat...' )
+    
+    # first check if we have all files
+    # first need to get the names of all files
+    datfilesNeeded = set()
+    for sample in samples:
+        (filename, index ) = sample
+        datfilesNeeded.add( filename )
+    print( 'total dat files to be consolidated: ' + str( len( datfilesNeeded ) ) )
+    datfilenames = []
+    for zipfilename in datfilesNeeded:
+        datfilename = zipfilename.replace('.zip','') + name + '.dat'
+        datfilenames.append(datfilename)
+    allfilespresent = True
+    for datfilename in datfilenames:
+        if not os.path.isfile( targetDirectory + '/' + datfilename ):
+            allfilespresent = False
+            print( 'Missing dat file: ' + datfilename )
+            sys.exit(-1)
+
+    filePath = targetDirectory + '/kgsgo-' + name + '.dat'
+    consolidatedfile = open( filePath + '~', 'wb' )
+    for filename in datfilenames:
+        print( 'reading from ' + filename + ' ...' )
+        filepath = sTargetDirectory + '/' + filename
+        singledat = open( filepath, 'rb' )
+        data = singledat.read()
+        if data[-3:] != 'END':
+            print( 'Invalid file, doesnt end with END' )
+        consolidatedfile.write( data[:-3] )
+        singledat.close()
+    consolidatedfile.write( 'END' )
+    consolidatedfile.close()
+    os.rename( filePath + '~', filePath )
+
 def go(sTargetDirectory, iMaxFiles):
     print( 'go' )
     if not os.path.isdir( sTargetDirectory ):
@@ -283,7 +303,7 @@ def go(sTargetDirectory, iMaxFiles):
     zip_downloader.downloadFiles( sTargetDirectory )
     test_samples = dataset_partitioner.draw_test_samples( sTargetDirectory )
     zipsToDats( sTargetDirectory, test_samples, 'test' )
-    # createSingleDat(sTargetDirectory)
+    createSingleDat(sTargetDirectory, 'test', test_samples )
 
 if __name__ == '__main__':
     sTargetDirectory = 'data'
