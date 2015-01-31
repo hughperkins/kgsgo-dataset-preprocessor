@@ -246,7 +246,7 @@ def zipsToDats( sTargetDirectory, samplesList, name ):
             zipsToDo.append( ( sTargetDirectory, zipName, sDatFilename, indexesByZipName[zipName] ) )        
 
     cores = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool( processes = 1 )
+    pool = multiprocessing.Pool( processes = cores )
 #    pool.map( loadAllSgfs, dirsToDo )
     p = pool.map_async( worker, zipsToDo )
     try:
@@ -310,6 +310,10 @@ def go(sTargetDirectory, iMaxFiles):
     zipsToDats( sTargetDirectory, test_samples, 'test' )
     createSingleDat(sTargetDirectory, 'test', test_samples )
 
+    train10k_samples = dataset_partitioner.draw_training_10k( sTargetDirectory )
+    zipsToDats( sTargetDirectory, train10k_samples, 'train10k' )
+    createSingleDat(sTargetDirectory, 'train10k', train10k_samples )
+    
 if __name__ == '__main__':
     sTargetDirectory = 'data'
     if len(sys.argv) >= 2:
