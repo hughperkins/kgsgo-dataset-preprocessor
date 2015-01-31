@@ -7,6 +7,12 @@ The goal of this project is to take the data from the [kgsgo website](http://u-g
 used for the creation of this project is to be able to somewhat reproduce the experiments in the [Clark and Storkey
 paper](http://arxiv.org/abs/1412.3409), and also somewhat targetting the [Maddison et al paper](http://arxiv.org/abs/1412.6564).
 
+#Pre-requisites
+
+* python (tested with 2.7, but including lots of python3 compatibility headers, but gomill would need a bit of tweaking, if we want to run with full, real python 3)
+* internet connection
+* about 4GB disk space
+
 #Instructions
 
 These are written for linux.  They may need some slight tweaking for Windows
@@ -22,11 +28,10 @@ Type:
 Planned design, not implemented yet:
 - the datasets are downloaded from http://u-go.net/gamerecords/, into `data` subdirectory
 - processed into .dat files, with the same name as the unzipped zip files, just with `.dat` instead of `.zip`, also in `data` directory
-- finally, consolidated together, into two .dat file, in the `data` subdirectory:
-  - `kgsgo-train.dat`
-  - `kgsgo-test.dat`
-- `kgsgo-test.dat` contains the data from 100 games, randomly selected
-- `kgsgo-train.dat` contains the data from the other games, in no particular order, unshuffled
+- finally, consolidated together, into ~~two~~ three .dat file, in the `data` subdirectory:
+  - `kgsgo-test.dat`: data from 100 games, randomly selected, and itemized in [test_samples.py](test_samples.py)
+  - `kgsgo-train10k.dat`: data from 10,000 games, randomly selected, and non-overlapping with the test games
+  - (and we can easily create a larger training data set, with everything except the test games, by just adding 3 lines in [kgs_dataset_preprocessor.py](kgs_dataset_preprocessor.py), at around line 315, but I figure I'm going to try with train10k first, before filling up my hard drive :-D
 
 #Data format of resulting file
 
@@ -56,6 +61,10 @@ Planned design, not implemented yet:
   * plane 5: location has opponent piece, with 3 or more liberties
   * plane 6: location would be an illegal simple-ko
   * plane 7: always 1 (represents the valid area of the board, since we might be zero-padding the images during CNN training)
+
+#Third-party libraries used
+
+* [gomill](https://github.com/mattheww/gomill.git)
 
 #Related projects
 
