@@ -48,7 +48,7 @@ def draw_samples( dataDirectory, numSamples ):
         if year > 2014:
             continue  # ignore after 2014, to keep the set of games fixed
         numgames = fileinfo['numGames']
-        for i in range( numgames + 1 ):
+        for i in range( numgames ):
             availableGames.append( ( filename, i ) )
     print( 'total num games: ' + str( len( availableGames ) ) )
 
@@ -76,7 +76,7 @@ def draw_training_games( dataDirectory ):
         if year > 2014:
             continue  # ignore after 2014, to keep the set of games fixed
         numgames = fileinfo['numGames']
-        for i in range( numgames + 1 ):
+        for i in range( numgames ):
             sample = ( filename, i )
             if sample not in testGames:
                 train_games.append( sample )
@@ -119,7 +119,7 @@ def draw_training_samples( dataDirectory, numSamples ):
         if year > 2014:
             continue  # ignore after 2014, to keep the set of games fixed
         numgames = fileinfo['numGames']
-        for i in range( numgames + 1 ):
+        for i in range( numgames ):
             availableGames.append( ( filename, i ) )
     print( 'total num games: ' + str( len( availableGames ) ) )
 
