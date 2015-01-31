@@ -8,19 +8,13 @@
 
 # this module will download the modules from the kgsgo archive site
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals, division, absolute_import
 
 import sys, os, time
 import urllib
 import multiprocessing
 
-sKgsUrl = 'http://u-go.net/gamerecords/'
-
-def downloadPage( url ):
-    fp = urllib.urlopen(url)
-    data = fp.read()
-    fp.close()
-    return data
+import index_processor
 
 def downloadUrl( downloadUrl, targetPath ):
     urllib.urlretrieve ( downloadUrl, targetPath + '~' )
@@ -37,33 +31,15 @@ def worker( urlAndTargetPath ):
         print( "Exiting child..." )
 
 def downloadFiles( sTargetDirectory ):
-    global sKgsUrl
-    try:
-        indexpagefile = open( 'cached_indexpage.html', 'r' )
-        indexpagecontents = indexpagefile.read()
-        indexpagefile.close()
-        print('reading index page from cache')
-#        import zip_urls.py
-    except:
-        #print('no cached_indexpage.py found')
-        print('downloading index page...')
-        indexpagecontents = downloadPage( sKgsUrl )
-        indexpagefile = open( 'cached_indexpage.~html', 'w')
-        indexpagefile.write( indexpagecontents )
-        indexpagefile.close()
-        os.rename( 'cached_indexpage.~html', 'cached_indexpage.html' )
-#    print page
-    splitpage = indexpagecontents.split('<a href="')
+    fileInfos = index_processor.get_fileInfos( sTargetDirectory )
     urlsToDo = []
-    for downloadUrlBit in splitpage:
-        if downloadUrlBit.startswith( "http://" ):
-            downloadUrl = downloadUrlBit.split('">Download')[0]
-            if downloadUrl.endswith('.zip'):
-                print( downloadUrl )
-                sFilename = os.path.basename( downloadUrl )
-                if not os.path.isfile( sTargetDirectory + '/' + sFilename ):
-                    urlsToDo.append( ( downloadUrl, sTargetDirectory + '/' + sFilename ) )
-                    print( 'to do: ' + downloadUrl + ' ... ' )
+    for fileinfo in fileInfos:
+        url = fileinfo['url']
+        print( url )
+        sFilename = fileinfo['filename']
+        if not os.path.isfile( sTargetDirectory + '/' + sFilename ):
+            urlsToDo.append( ( url, sTargetDirectory + '/' + sFilename ) )
+            print( 'to do: ' + url + ' ... ' )
     pool = multiprocessing.Pool( processes = 16 )
     try:
         it = pool.imap( worker, urlsToDo,  )
