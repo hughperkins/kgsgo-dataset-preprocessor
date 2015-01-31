@@ -30,6 +30,10 @@ import gomill
 import gomill.sgf
 #import gomill.handicap_layout
 
+import index_processor
+import zip_downloader
+import dataset_partitioner
+
 # should unzip sZipfilename inside a directory with same name, but '.zip' removed
 # will unzip to create a new subdirectory inside this directory, so the sgfs will be two levels
 # down
@@ -187,43 +191,37 @@ def loadAllSgfs( sDirPath ):
     os.rename( sDirPath + '.~dat', sDirPath + '.dat' )
 
 # unzip the zip, process the sgfs to .dat, and remove the unzipped directory
-def processZip( sDirectoryName, sZipfilename  ):
+def processZip( sDirectoryName, sZipfilename, datfilename, indexlist ):
     sBasename = sZipfilename.replace('.zip', '')
     thiszip = zipfile.ZipFile( sDirectoryName + '/' + sZipfilename )
-    datafile = open( sDirectoryName + '/' + sBasename + '.~dat', 'wb' )
-    for name in thiszip.namelist():
+    datafile = open( sDirectoryName + '/' + datfilename + '~', 'wb' )
+    namelist = thiszip.namelist()
+    for index in indexlist:
+        print( 'index: ' + str(index) )
+#    for name in thiszip.namelist():
+        name = namelist[index + 1] # skip name of directory
         print( name )
         if name.endswith('.sgf'):
             contents = thiszip.read( name )
             #print( contents )
             walkthroughSgf( datafile, contents )
-#            sys.exit(-1)
-            #break
+    #            sys.exit(-1)
+                #break
+        else:
+            print('not sgf: [' + name + ']' )
+            sys.exit(-1)
     datafile.write('END')
     datafile.close()
-    os.rename( sDirectoryName + '/' + sBasename + '.~dat', sDirectoryName + '/' + sBasename + '.dat' )
-    
-    #unzippedDirectory = unzipFile( sDirectoryName, sZipfilename )
-    #sBasename = sZipfilename.replace( ".zip", "" )
-    #datafile = open( sDirectoryName + '/' + sBasename + '.~dat', 'wb' )
-    #for sSgfFilename in os.listdir( unzippedDirectory ):
-#        loadSgf( datafile, sDirPath + '/' + sSgfFilename )
-#        iCount = iCount + 1
-#    datafile.write('END')
-#    datafile.close()
-#    os.rename( sDirectoryName + '/' + sBasename + '.~dat', sDirectoryName + '/' + sBasename + '.dat' )
-#    shutil.rmtree( sDirectoryName + '/' + sBasename
-    
-def worker( directoryandzipfilepath ):
-#    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    os.rename( sDirectoryName + '/' + datfilename + '~', sDirectoryName + '/' + datfilename )
+        
+def worker( jobinfo ):
     try:
-        (sDirectoryName, sZipfilename ) = directoryandzipfilepath
-        processZip( sDirectoryName, sZipfilename )
+        (sDirectoryName, sZipfilename, sDatfilename, indexList ) = jobinfo
+        processZip( sDirectoryName, sZipfilename, sDatfilename, indexList )
     except (KeyboardInterrupt, SystemExit):
        print( "Exiting child..." )
-
-#def init_worker():
-#    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    except Exception as e:
+       print( e )
 
 def createSingleDat( targetDirectory ):
     print( 'creating consolidated .dat...' )
@@ -243,22 +241,28 @@ def createSingleDat( targetDirectory ):
 
 # for each .zip file, if no .dat file, then unzip, process the sgfs, and create the .dat
 # then remove the unzipped directory
-def zipsToDats( sTargetDirectory, iMaxFiles ):
+# will use name parameter in name of dat file, and will only include games in the list
+def zipsToDats( sTargetDirectory, samplesList, name ):
     iCount = 0
+    zipNames = set()
+    indexesByZipName = {}
+    for sample in samplesList:
+        (filename,index) = sample
+        zipNames.add( filename )
+        if not indexesByZipName.has_key( filename ):
+           indexesByZipName[filename] = []
+        indexesByZipName[filename].append( index )
+    print( 'num zips: ' + str( len( zipNames ) ) )
+
     zipsToDo = []
-    for sZipfilename in os.listdir( sTargetDirectory ):
-        #sFilepath = sTargetDirectory + '/' + 
-        if sZipfilename.endswith('.zip'):
-            sBasename = sZipfilename.replace('.zip','')
-            if not os.path.isfile( sTargetDirectory + '/' + sBasename + '.dat' ):
-                zipsToDo.append( ( sTargetDirectory, sZipfilename ) )
-            iCount = iCount + 1
-            if iMaxFiles > 0 and iCount >= iMaxFiles:
-                break
-    #for dirpath in dirsToDo:
-    #    loadAllSgfs( dirpath )
+    for zipName in zipNames:
+        sBasename = zipName.replace('.zip','')
+        sDatFilename = sBasename + name + '.dat'
+        if not os.path.isfile( sTargetDirectory + '/' + sDatFilename ):
+            zipsToDo.append( ( sTargetDirectory, zipName, sDatFilename, indexesByZipName[zipName] ) )        
+
     cores = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool( processes = cores )
+    pool = multiprocessing.Pool( processes = 1 )
 #    pool.map( loadAllSgfs, dirsToDo )
     p = pool.map_async( worker, zipsToDo )
     try:
@@ -275,11 +279,11 @@ def go(sTargetDirectory, iMaxFiles):
     print( 'go' )
     if not os.path.isdir( sTargetDirectory ):
         os.makedirs( sTargetDirectory )
-    downloadFiles( sTargetDirectory, iMaxFiles )
-    # unzipFiles( sTargetDirectory, iMaxFiles )
-    zipsToDats( sTargetDirectory, iMaxFiles )
-    # make one single .dat file
-    createSingleDat(sTargetDirectory)
+    index_processor.get_fileInfos( sTargetDirectory )
+    zip_downloader.downloadFiles( sTargetDirectory )
+    test_samples = dataset_partitioner.draw_test_samples( sTargetDirectory )
+    zipsToDats( sTargetDirectory, test_samples, 'test' )
+    # createSingleDat(sTargetDirectory)
 
 if __name__ == '__main__':
     sTargetDirectory = 'data'

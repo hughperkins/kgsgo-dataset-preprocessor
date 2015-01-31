@@ -93,8 +93,8 @@ def draw_test_samples( dataDirectory ):
         for line in samplesContents.split('\n'):
             #print( line )
             if line != "":
-                ( filename, count ) = eval( line )
-                testGames.append( ( filename, count ) )
+                ( filename, index ) = eval( line )
+                testGames.append( ( filename, index ) )
     except Exception as e:
         print( e )
         testGames = draw_samples( dataDirectory, numTestGames )
