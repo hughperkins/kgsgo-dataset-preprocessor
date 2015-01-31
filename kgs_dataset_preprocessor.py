@@ -292,7 +292,8 @@ def createSingleDat( targetDirectory, name, samples ):
         singledat = open( filepath, 'rb' )
         data = singledat.read()
         if data[-3:] != 'END':
-            print( 'Invalid file, doesnt end with END' )
+            print( 'Invalid file, doesnt end with END: ' + filepath )
+            sys.exit(-1)
         consolidatedfile.write( data[:-3] )
         singledat.close()
     consolidatedfile.write( 'END' )
