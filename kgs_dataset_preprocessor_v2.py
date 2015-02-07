@@ -55,8 +55,15 @@ def addToDataFile( datafile, color, move, goBoard ):
     (row,col) = move
     enemyColor = goBoard.otherColor( color )
     datafile.write('GO') # write something first, so we can sync/validate on reading
-    datafile.write(chr(row)) # write the move
-    datafile.write(chr(col))
+    label = row * 19 + col
+    labelHighByte = label // 256
+    labelLowbyte = label % 256
+    datafile.write(chr(0))
+    datafile.write(chr(0))
+    datafile.write(chr(labelHighByte))
+    datafile.write(chr(labelLowbyte))
+    #datafile.write(chr(row)) # write the move
+    #datafile.write(chr(col))
 #    print( 'writing move: ' + str(row) + "," + str(col))
     thisbyte = 0
     thisbitpos = 0

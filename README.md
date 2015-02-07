@@ -88,6 +88,7 @@ mlv2-n=347-numplanes=7-imagewidth=19-imageheight=19-datatype=int-bpp=1
   * `int` means the data is in ints, cf `float`, if in floats
   * `bpp=` gives the number of bits per pixel/point
 * each data example is prefixed with 'GO' as before
+* label is provided as a 4-byte integer, comprising `nextmoverow * 19 + nextmovecol`, in intel-endian
 * data is arranged in order of: example, then by plane, then by row, then by column
 * data is provided as a bitmap, eg where the 8 bits of the first byte represent the first 8 columns of the first row of the first plane
 * bits are arranged so that if you wrote out the bytes in binary, the 1s and 0s would be arranged in order, ie by plane, then by row, then by column
