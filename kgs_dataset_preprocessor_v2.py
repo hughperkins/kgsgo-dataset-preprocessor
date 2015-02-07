@@ -297,6 +297,8 @@ def createSingleDat( targetDirectory, name, samples ):
 
     # first check if we have all files
     # first need to get the names of all files
+    # also, need to count total number of records
+    numRecords = 0
     datfilesNeeded = set()
     for sample in samples:
         (filename, index ) = sample
@@ -312,8 +314,15 @@ def createSingleDat( targetDirectory, name, samples ):
             allfilespresent = False
             print( 'Missing dat file: ' + datfilename )
             sys.exit(-1)
+        childdatfile = open( targetDirectory + '/' + datfilename, 'rb' )
+        header = childdatfile.read(1024)
+        thisN = int( header.split('-n=')[1].split('-')[0] )
+        childdatfile.close()
+        numRecords = numRecords + thisN
+        print( 'child ' + datafilename + ' N=' + str(thisN) )
 
     consolidatedfile = open( filePath + '~', 'wb' )
+    writeFileHeader( consolidatedfile, numRecords, 7, 19, 'int', 1 )
     for filename in datfilenames:
         print( 'reading from ' + filename + ' ...' )
         filepath = sTargetDirectory + '/' + filename
