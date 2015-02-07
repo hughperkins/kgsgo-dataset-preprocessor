@@ -71,6 +71,30 @@ When I run it, I get md5sums:
 ```
 If it's different, it doesn't necessarily matter, but if it's the same, it's a good sign :-)
 
+# v2-format
+
+After writing the format as detailed above, I noticed some things I'd prefer to do differently.  Therefore, v2
+format modifies these things, but without changing anything detailed above.  If you continue to use `kg_dataset_preprocessor.py`, then the data produced will be unchanged.  In addition the files produced by v2
+do not overlap with those produced by the earlier version.
+
+v2 changes the following:
+* run by doing `python kgs_dataset_preprocessor_v2.py`
+* data files have a header, 1024 bytes, with the following format, eg:
+```
+mlv2-n=347-numplanes=7-imagewidth=19-imageheight=19-datatype=int-bpp=1
+```
+* where:
+  * `n=` gives number of examples
+  * `int` means the data is in ints, cf `float`, if in floats
+  * `bpp=` gives the number of bits per pixel/point
+* each data example is prefixed with 'GO' as before
+* data is arranged in order of: example, then by plane, then by row, then by column
+* data is provided as a bitmap, eg where the 8 bits of the first byte represent the first 8 columns of the first row of the first plane
+* bits are arranged so that if you wrote out the bytes in binary, the 1s and 0s would be arranged in order, ie by plane, then by row, then by column
+* when changing row, or plane, the bit position is unaffected, eg if there are 4 plane, with imagewidth 1, imagewidth 1, and the first plane is 1, and the other are 0, then we'd have bits `1000`
+* the final byte of each example is 0 padded, on the right hand side, so, in the example in the previous sentence, the byte would become `10000000`
+* finally, compared to the previous version, only 7 planes are stored, the plane that is all 1s is omitted
+
 #Third-party libraries used
 
 * [gomill](https://github.com/mattheww/gomill.git)

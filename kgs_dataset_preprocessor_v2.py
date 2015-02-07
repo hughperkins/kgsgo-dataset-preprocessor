@@ -34,40 +34,6 @@ import index_processor
 import zip_downloader
 import dataset_partitioner
 
-# should unzip sZipfilename inside a directory with same name, but '.zip' removed
-# will unzip to create a new subdirectory inside this directory, so the sgfs will be two levels
-# down
-# this way the top level subdirectory name matches the zipfile name, so easy to reconcile/match
-def _unzipFile( sTargetDirectory, sZipfilename ):
-    zipfilepath = sTargetDirectory + '/' + sZipfilename
-    thiszip = zipfile.ZipFile( zipfilepath )
-    zipdirname = thiszip.namelist()[0]
-    print( 'unzipping ' + zipfilepath + '...' )
-    thiszip.extractall( sTargetDirectory + '/~' + sZipfilename.replace(".zip","~" ) )
-    sBasename = replace( sZipfilename, ".zip","" )
-    os.rename( sTargetDirectory + '/~' + sBasename, sTargetDirectory + '/' + sBasename )
-    #shutil.move( sTargetDirectory + '/~' + zipdirname + '/' + zipdirname, sTargetDirectory )
-    #os.rmdir( sTargetDirectory + '/~' + zipdirname )
-    return sTargetDirectory + '/' + sBasename + '/' + zipdirname
-
-def _unzipFiles( sTargetDirectory, iMaxFiles ):
-    iCount = 0
-    for sFilename in os.listdir( sTargetDirectory ):
-        sFilepath = sTargetDirectory + '/' + sFilename
-        if os.path.isfile( sFilepath ) and not sFilename.startswith('~') and sFilename.endswith('.zip'):
-            #print sFilepath
-            thiszip = zipfile.ZipFile( sFilepath )
-            zipdirname = thiszip.namelist()[0]
-            if not os.path.isdir( sTargetDirectory + '/' + zipdirname ):
-                print( 'unzipping ' + sFilepath + '...' )
-                thiszip.extractall( sTargetDirectory + '/~' + zipdirname )
-                shutil.move( sTargetDirectory + '/~' + zipdirname + '/' + zipdirname, sTargetDirectory )
-                os.rmdir( sTargetDirectory + '/~' + zipdirname )
-            iCount = iCount + 1
-            if iMaxFiles != -1 and iCount > iMaxFiles:
-                print( 'reached limit of files you requested, skipping other unzips' )
-                return
-
 def addToDataFile( datafile, color, move, goBoard ):
     # color is the color of the next person to move
     # move is the move they decided to make
@@ -138,11 +104,11 @@ def writeFileHeader( datafile, N, numPlanes, boardSize, datatype, bitsPerPixel )
     headerLine = headerLine + '-datatype=' + datatype
     headerLine = headerLine + '-bpp=' + str( bitsPerPixel )
     print( headerLine )
-    headerLine = headerLine + ' '
-    headerLine = headerLine + ' ' * (1024-len(headerLine) )
+    headerLine = headerLine + "\0\n" # \0 to end the string, and \n so we can use `strings` etc
+    headerLine = headerLine + chr(0) * (1024-len(headerLine) )
     datafile.write( headerLine )
     
-def walkthroughSgf( datafile, sgfContents ):
+def walkthroughSgf( countOnly, datafile, sgfContents ):
     sgf = gomill.sgf.Sgf_game.from_string( sgfContents )
     # print sgf
     if sgf.get_size() != 19:
@@ -167,74 +133,58 @@ def walkthroughSgf( datafile, sgfContents ):
         doneFirstMove = True
         #sys.exit(-1)
     # first, count number of moves...
-    numMoves = 0
-    countDoneFirstMove = doneFirstMove
-    for it in sgf.main_sequence_iter():
-        (color,move) = it.get_move()
-        if color != None and move != None:
-            #(row,col) = move
-            if countDoneFirstMove and datafile != None:
-                numMoves = numMoves + 1
-                #addToDataFile( datafile, color, move, goBoard )
-            countDoneFirstMove = True
-    writeFileHeader( datafile, numMoves, 7, 19, 'int', 1 )
+    if countOnly:
+        numMoves = 0
+        countDoneFirstMove = doneFirstMove
+        for it in sgf.main_sequence_iter():
+            (color,move) = it.get_move()
+            if color != None and move != None:
+                #(row,col) = move
+                if countDoneFirstMove:
+                    numMoves = numMoves + 1
+                    #addToDataFile( datafile, color, move, goBoard )
+                countDoneFirstMove = True
+        return numMoves
+    #writeFileHeader( datafile, numMoves, 7, 19, 'int', 1 )
     moveIdx = 0
     for it in sgf.main_sequence_iter():
         (color,move) = it.get_move()
         if color != None and move != None:
             (row,col) = move
-            if doneFirstMove and datafile != None:
+            if doneFirstMove:
                 addToDataFile( datafile, color, move, goBoard )
             goBoard.applyMove( color, (row,col) )
             moveIdx = moveIdx + 1
             doneFirstMove = True
 
-def loadSgf( datafile, sgfFilepath ):
-    sgfile = open( sgfFilepath, 'r' )
-    contents = sgfile.read()
-    sgfile.close()
-#        print contents
-    if contents.find( 'SZ[19]' ) < 0:
-        print( 'not 19x19, skipping' )
-        return
-    try:
-        walkthroughSgf( datafile, contents )
-    except:
-        print( "exception caught for file " + path.abspath( sgfFilepath ) )
-        raise 
-    #print( sgfFilepath )
-
-def loadAllSgfs( sDirPath ):
-    iCount = 0
-    datafile = open( sDirPath + '-v2.~dat', 'wb' )
-    for sSgfFilename in os.listdir( sDirPath ):
-#        print sSgfFilename
-        #print( '.', end='')
-        if iCount > 0 and iCount % 80 == 0:
-            print( "processed " + str(iCount) + " sgf files" )
-        loadSgf( datafile, sDirPath + '/' + sSgfFilename )
-        iCount = iCount + 1
-    datafile.write('END')
-    datafile.close()
-    os.rename( sDirPath + '-v2.~dat', sDirPath + '-v2.dat' )
-
 # unzip the zip, process the sgfs to .dat, and remove the unzipped directory
 def processZip( sDirectoryName, sZipfilename, datfilename, indexlist ):
     sBasename = sZipfilename.replace('.zip', '')
     thiszip = zipfile.ZipFile( sDirectoryName + '/' + sZipfilename )
-    datafile = open( sDirectoryName + '/' + datfilename + '~', 'wb' )
     namelist = thiszip.namelist()
+    # first, count the total examples
+    totalExamples = 0
+    datafile = None
     for index in indexlist:
         print( 'index: ' + str(index) )
-#    for name in thiszip.namelist():
         name = namelist[index + 1] # skip name of directory
         print( name )
         if name.endswith('.sgf'):
             contents = thiszip.read( name )
-            #print( contents )
-            walkthroughSgf( datafile, contents )
-    #            sys.exit(-1)
-                #break
+            totalExamples = totalExamples + walkthroughSgf( True, datafile, contents )
+        else:
+            print('not sgf: [' + name + ']' )
+            sys.exit(-1)
+    # now write the examples, including the header
+    datafile = open( sDirectoryName + '/' + datfilename + '~', 'wb' )
+    writeFileHeader( datafile, totalExamples, 7, 19, 'int', 1 )
+    for index in indexlist:
+        print( 'index: ' + str(index) )
+        name = namelist[index + 1] # skip name of directory
+        print( name )
+        if name.endswith('.sgf'):
+            contents = thiszip.read( name )
+            walkthroughSgf( False, datafile, contents )
         else:
             print('not sgf: [' + name + ']' )
             sys.exit(-1)
@@ -319,7 +269,7 @@ def createSingleDat( targetDirectory, name, samples ):
         thisN = int( header.split('-n=')[1].split('-')[0] )
         childdatfile.close()
         numRecords = numRecords + thisN
-        print( 'child ' + datafilename + ' N=' + str(thisN) )
+        print( 'child ' + datfilename + ' N=' + str(thisN) )
 
     consolidatedfile = open( filePath + '~', 'wb' )
     writeFileHeader( consolidatedfile, numRecords, 7, 19, 'int', 1 )
@@ -327,6 +277,8 @@ def createSingleDat( targetDirectory, name, samples ):
         print( 'reading from ' + filename + ' ...' )
         filepath = sTargetDirectory + '/' + filename
         singledat = open( filepath, 'rb' )
+        # first, skip header
+        singledat.read(1024)
         data = singledat.read()
         if data[-3:] != 'END':
             print( 'Invalid file, doesnt end with END: ' + filepath )
