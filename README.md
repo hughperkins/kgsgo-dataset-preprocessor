@@ -96,6 +96,22 @@ mlv2-n=347-numplanes=7-imagewidth=19-imageheight=19-datatype=int-bpp=1
 * the final byte of each example is 0 padded, on the right hand side, so, in the example in the previous sentence, the byte would become `10000000`
 * finally, compared to the previous version, only 7 planes are stored, the plane that is all 1s is omitted
 
+## md5 sums
+
+When I run this, I get the following md5 sums.  If these are different for you, it's not necessarily an issue.  If they are the same, this is a good sign :-)
+
+```
+57382be81ef419a5f1b1cf2632a8debf  kgsgo-test-v2.dat
+6172e980f348103be3ad06ae7f946b47  kgsgo-train10k-v2.dat
+```
+
+## Example loader
+
+* Example of a loader for these files, in C++: [Kgsv2Loader.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/Kgsv2Loader.cpp)
+* Note that this uses a couple of utility classes:
+  * [FileHelper.h](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/FileHelper.h)
+  * [stringhelper.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/stringhelper.cpp)
+
 #Third-party libraries used
 
 * [gomill](https://github.com/mattheww/gomill.git)
