@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [kgsgo-dataset-preprocessor](#kgsgo-dataset-preprocessor)
+- [goal](#goal)
+- [Pre-requisites](#pre-requisites)
+- [Instructions](#instructions)
+- [Results](#results)
+- [Data format of resulting file](#data-format-of-resulting-file)
+- [Data processing applied](#data-processing-applied)
+- [MD5sum](#md5sum)
+- [v2-format](#v2-format)
+  - [md5 sums](#md5-sums)
+  - [Example loader](#example-loader)
+- [Third-party libraries used](#third-party-libraries-used)
+- [Related projects](#related-projects)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # kgsgo-dataset-preprocessor
 Dataset preprocessor for the KGS go dataset, eg according to Clark and Storkey input planes
 
