@@ -296,27 +296,64 @@ def createSingleDat( targetDirectory, name, samples ):
     consolidatedfile.close()
     os.rename( filePath + '~', filePath )
 
-def go(sTargetDirectory, iMaxFiles):
+def go(sTargetDirectory, sets):
     print( 'go' )
     if not os.path.isdir( sTargetDirectory ):
         os.makedirs( sTargetDirectory )
     index_processor.get_fileInfos( sTargetDirectory )
     zip_downloader.downloadFiles( sTargetDirectory )
 
-    test_samples = dataset_partitioner.draw_test_samples( sTargetDirectory )
-    zipsToDats( sTargetDirectory, test_samples, 'test' )
-    createSingleDat(sTargetDirectory, 'test', test_samples )
+    if 'test' in sets:
+        test_samples = dataset_partitioner.draw_test_samples( sTargetDirectory )
+        zipsToDats( sTargetDirectory, test_samples, 'test' )
+        createSingleDat(sTargetDirectory, 'test', test_samples )
 
-    train10k_samples = dataset_partitioner.draw_training_10k( sTargetDirectory )
-    zipsToDats( sTargetDirectory, train10k_samples, 'train10k' )
-    createSingleDat(sTargetDirectory, 'train10k', train10k_samples )
-    
-if __name__ == '__main__':
+    if 'train10k' in sets:
+        train10k_samples = dataset_partitioner.draw_training_10k( sTargetDirectory )
+        zipsToDats( sTargetDirectory, train10k_samples, 'train10k' )
+        createSingleDat(sTargetDirectory, 'train10k', train10k_samples )
+
+    if 'trainall' in sets:
+        trainall_samples = dataset_partitioner.draw_all_training( sTargetDirectory )
+        zipsToDats( sTargetDirectory, trainall_samples, 'trainall' )
+        createSingleDat(sTargetDirectory, 'trainall', trainall_samples )
+
+def printUsage():
+    print( 'Usage: python ' + sys.argv[0] + ' [options]' )
+    print( 'Options:' )
+    print( '  dir=[target directory]')
+    print( '  sets=[list of sets, eg: test,train10k,trainall.  Available sets: test,train10k,trainall]')
+
+def processArgs():
     sTargetDirectory = 'data'
-    if len(sys.argv) >= 2:
-        sTargetDirectory = sys.argv[1]
-    iMaxFiles = -1
-    if len(sys.argv) >= 3:
-        iMaxFiles = int( sys.argv[2] )
-    go(sTargetDirectory, iMaxFiles)
+    sets = [ 'test', 'train10k', 'trainall' ]
+    for arg in sys.argv[1:]:
+        splitarg = arg.split('=')
+        print( 'arg: [' + arg + ']' )
+        if( len(splitarg) != 2 ):
+            print('options should be provided in form [key]=[value], eg dir=data')
+            printUsage()
+            return
+        key = splitarg[0]
+        value = splitarg[1]
+        print('key: ' + key )
+        if key == 'dir':
+            sTargetDirectory = value
+        elif key == 'sets':
+            sets = value.split(',')
+            for thisset in sets:
+                if not thisset in ['test', 'train10k', 'trainall']:
+                    print('unrecognized set: ' + thisset )
+                    printUsage()
+                    return
+        else:
+            print('unrecognized option ' + key )
+            printUsage()
+            return
+    print( 'target directory: ' + sTargetDirectory )
+    print( 'generate sets: ' + str( sets ) )
+    go(sTargetDirectory, sets)
+
+if __name__ == '__main__':
+    processArgs()
 

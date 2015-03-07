@@ -33,7 +33,14 @@ paper](http://arxiv.org/abs/1412.3409), and also somewhat targetting the [Maddis
 * internet connection
 * about 4GB disk space
 
-#Instructions
+# v1 vs v2 format
+
+* both formats contain the same data
+* v2 format is arguably a more generic format, eg it contains metadata inside describing the arrangement and type of the data
+
+# v1 format
+
+##Instructions
 
 These are written for linux.  They may need some slight tweaking for Windows
 
@@ -43,9 +50,8 @@ Type:
     cd kgsgo-dataset-preprocessor
     python kgs_dataset_preprocessor.py
 
-#Results
+##Results
 
-Planned design, not implemented yet:
 - the datasets are downloaded from http://u-go.net/gamerecords/, into `data` subdirectory
 - processed into .dat files, with the same name as the unzipped zip files, just with `.dat` instead of `.zip`, also in `data` directory
 - finally, consolidated together, into ~~two~~ three .dat file, in the `data` subdirectory:
@@ -53,7 +59,7 @@ Planned design, not implemented yet:
   - `kgsgo-train10k.dat`: data from 10,000 games, randomly selected, and non-overlapping with the test games
   - (and we can easily create a larger training data set, with everything except the test games, by just adding 3 lines in [kgs_dataset_preprocessor.py](kgs_dataset_preprocessor.py), at around line 315, but I figure I'm going to try with train10k first, before filling up my hard drive :-D
 
-#Data format of resulting file
+##Data format of resulting file
 
 * it's a binary file, consisting of 1 or more fixed size records, followed by bytes 'E' 'N' 'D'
 * Each record represents one labelled training example.  Each training example has the following format:
@@ -82,7 +88,7 @@ Planned design, not implemented yet:
   * plane 6: location would be an illegal simple-ko
   * plane 7: always 1 (represents the valid area of the board, since we might be zero-padding the images during CNN training)
 
-#MD5sum
+##MD5sum
 
 When I run it, I get md5sums:
 ```
@@ -91,9 +97,11 @@ When I run it, I get md5sums:
 ```
 If it's different, it doesn't necessarily matter, but if it's the same, it's a good sign :-)
 
-# v2-format
+# v2 format
 
-After writing the format as detailed above, I noticed some things I'd prefer to do differently.  Therefore, v2
+## v2 format vs v1 format
+
+After writing v1 format as detailed above, I noticed some things I'd prefer to do differently.  Therefore, v2
 format modifies these things, but without changing anything detailed above.  If you continue to use `kg_dataset_preprocessor.py`, then the data produced will be unchanged.  In addition the files produced by v2
 do not overlap with those produced by the earlier version.
 
@@ -116,6 +124,23 @@ mlv2-n=347-numplanes=7-imagewidth=19-imageheight=19-datatype=int-bpp=1
 * the final byte of each example is 0 padded, on the right hand side, so, in the example in the previous sentence, the byte would become `10000000`
 * finally, compared to the previous version, only 7 planes are stored, the plane that is all 1s is omitted
 
+## Running v2 format processor
+
+```bash
+python kgs_dataset_preprocessor_v2.py
+```
+Available options:
+* `dir` specify the target directory, where the data will be downloaded to, and the datasets generated
+* `sets` specify which sets to generate.  There are three sets available:
+  * `test`: the test set, generated from 100 randomly selected, but fixed, games
+  * `train10k`: training set, generated from 10,000 randomly selected, but fixed, games, non-overlapping with the test games
+  * `trainall`: training set, generated from all games, excluding, and non-overlapping with, the test games
+* eg you can do:
+```bash
+python kgs_dataset_preprocessor_v2.py dir=data sets=test,train10k,trainall
+```
+(this is the default in fact, if you run with no arguments)
+
 ## md5 sums
 
 When I run this, I get the following md5 sums.  If these are different for you, it's not necessarily an issue.  If they are the same, this is a good sign :-)
@@ -127,7 +152,7 @@ When I run this, I get the following md5 sums.  If these are different for you, 
 
 ## Example loader
 
-* Example of a loader for these files, in C++: [Kgsv2Loader.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/Kgsv2Loader.cpp)
+* Example of a loader for v2 format, in C++: [Kgsv2Loader.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/Kgsv2Loader.cpp)
 * Note that this uses a couple of utility classes:
   * [FileHelper.h](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/FileHelper.h)
   * [stringhelper.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/stringhelper.cpp)

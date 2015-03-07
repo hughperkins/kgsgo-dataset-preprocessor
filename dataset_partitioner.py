@@ -138,6 +138,35 @@ def draw_training_samples( dataDirectory, numSamples ):
     samples = list( samplesSet )
     return samples
 
+def draw_all_training( dataDirectory ):
+    test_samples = draw_test_samples( dataDirectory )
+
+    availableGames = []
+    fileinfos = index_processor.get_fileInfos( dataDirectory )
+    for fileinfo in fileinfos:
+        filename = fileinfo['filename']
+        year = int( filename.split('-')[1].split('_')[0] )
+        if year > 2014:
+            continue  # ignore after 2014, to keep the set of games fixed
+        numgames = fileinfo['numGames']
+        for i in range( numgames ):
+            availableGames.append( ( filename, i ) )
+    print( 'total num games: ' + str( len( availableGames ) ) )
+
+    # need to seed random first
+    random.seed(0)
+    # I suppose the first 100 samples will be the testing ones :-P
+    # anyway, just skip those....
+    
+    samplesSet = set()
+    for sample in availableGames:
+        if sample not in test_samples:
+            samplesSet.add( sample )
+    print( 'Drawn all samples, ie ' + str( len( samplesSet ) ) + ' samples:' )
+    # copy to list
+    samples = list( samplesSet )
+    return samples
+
 def draw_training_10k( dataDirectory ):
     return draw_training_samples( dataDirectory, 10000 )
 
