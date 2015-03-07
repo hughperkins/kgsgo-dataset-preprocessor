@@ -282,7 +282,7 @@ def createSingleDat( targetDirectory, name, samples ):
     writeFileHeader( consolidatedfile, numRecords, 7, 19, 'int', 1 )
     for filename in datfilenames:
         print( 'reading from ' + filename + ' ...' )
-        filepath = sTargetDirectory + '/' + filename
+        filepath = targetDirectory + '/' + filename
         singledat = open( filepath, 'rb' )
         # first, skip header
         singledat.read(1024)
