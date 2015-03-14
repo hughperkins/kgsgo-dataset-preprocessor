@@ -151,6 +151,14 @@ When I run this, I get the following md5 sums.  If these are different for you, 
 20440801e72452b6714d5dd061673973  kgsgo-trainall-v2.dat
 ```
 
+File sizes:
+```
+$ ls -lh kgsgo-*v2.dat
+-rw-rw-r-- 1 ubuntu ubuntu 5.8M Feb  8 05:58 kgsgo-test-v2.dat
+-rw-rw-r-- 1 ubuntu ubuntu 601M Feb  8 06:13 kgsgo-train10k-v2.dat
+-rw-rw-r-- 1 ubuntu ubuntu  11G Mar  7 15:58 kgsgo-trainall-v2.dat
+```
+
 ## Example loader
 
 * Example of a loader for v2 format, in C++: [Kgsv2Loader.cpp](https://github.com/hughperkins/ClConvolve/blob/64783ebd2b0912f1f8d616cb497156199642b7c0/src/Kgsv2Loader.cpp)
