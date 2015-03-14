@@ -148,6 +148,7 @@ When I run this, I get the following md5 sums.  If these are different for you, 
 ```
 57382be81ef419a5f1b1cf2632a8debf  kgsgo-test-v2.dat
 6172e980f348103be3ad06ae7f946b47  kgsgo-train10k-v2.dat
+20440801e72452b6714d5dd061673973  kgsgo-trainall-v2.dat
 ```
 
 ## Example loader
