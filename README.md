@@ -102,8 +102,8 @@ If it's different, it doesn't necessarily matter, but if it's the same, it's a g
 ## v2 format vs v1 format
 
 After writing v1 format as detailed above, I noticed some things I'd prefer to do differently.  Therefore, v2
-format modifies these things, but without changing anything detailed above.  If you continue to use `kg_dataset_preprocessor.py`, then the data produced will be unchanged.  In addition the files produced by v2
-do not overlap with those produced by the earlier version.
+format modifies these things, but without changing anything detailed above.  If you continue to use `kg_dataset_preprocessor.py`, then the data produced will be unchanged.  In addition the filenames produced by v2
+do not overwrite those produced by the earlier version.
 
 v2 changes the following:
 * run by doing `python kgs_dataset_preprocessor_v2.py`
