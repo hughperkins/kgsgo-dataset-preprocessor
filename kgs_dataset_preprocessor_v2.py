@@ -77,14 +77,14 @@ def addToDataFile( datafile, color, move, goBoard ):
                         thisbit = 1
                     elif plane == 1 and goBoard.goStrings[pos].liberties.size() == 2:
                         thisbit = 1
-                    elif plane == 2:
+                    elif plane == 2 and goBoard.goStrings[pos].liberties.size() >= 3:
                         thisbit = 1
                 if goBoard.board.get(pos) == enemyColor:
                     if plane == 3 and goBoard.goStrings[pos].liberties.size() == 1:
                         thisbit = 1
                     elif plane == 4 and goBoard.goStrings[pos].liberties.size() == 2:
                         thisbit = 1
-                    elif plane == 5:
+                    elif plane == 5 and goBoard.goStrings[pos].liberties.size() >= 3:
                         thisbit = 1
                 if plane == 6 and goBoard.isSimpleKo( color, pos ):
                         thisbit = 1
