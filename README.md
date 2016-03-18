@@ -31,7 +31,7 @@ paper](http://arxiv.org/abs/1412.3409), and also somewhat targetting the [Maddis
 
 * python (tested with 2.7, but including lots of python3 compatibility headers, but gomill would need a bit of tweaking, if we want to run with full, real python 3)
 * internet connection
-* about 4GB disk space
+* about 20GB disk space
 
 # v1 vs v2 format
 
